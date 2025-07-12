@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Navigation from './components/Navigation';
 import AgentReasoning from './pages/AgentReasoning';
 import ComplianceCommandCenter from './pages/ComplianceCommandCenter';
@@ -8,6 +9,19 @@ import SupplierScoring from './pages/SupplierScoring';
 import RiskMitigation from './pages/RiskMitigation';
 import SupplierPortal from './pages/SupplierPortal';
 import AuditTrail from './pages/AuditTrail';
+import { BedrockAgentProvider } from './context/BedrockAgentProvider';
+import { SupplierProvider } from './hooks/useSupplierContext';
+
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function App() {
   const [currentUser] = useState({
@@ -17,23 +31,32 @@ function App() {
   });
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navigation currentUser={currentUser} />
-        <main className="pl-64">
-          <Routes>
-            <Route path="/" element={<ComplianceCommandCenter />} />
-            <Route path="/rfp-wizard" element={<RFPWizard />} />
-            <Route path="/supplier-scoring" element={<SupplierScoring />} />
-            <Route path="/risk-mitigation" element={<RiskMitigation />} />
-            <Route path="/supplier-portal" element={<SupplierPortal />} />
-            <Route path="/audit-trail" element={<AuditTrail />} />
-            <Route path="/supplier/:id/reasoning" element={<AgentReasoning />} />
-          </Routes>
-        </main>
-      </div>
-      {/* Agent reasoning and supplier portal are now accessed via supplier analytics */}
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <BedrockAgentProvider>
+        <SupplierProvider>
+          <Router>
+            <div className="min-h-screen bg-gray-50">
+              <Navigation currentUser={currentUser} />
+              <main className="pl-64">
+                <Routes>
+                  <Route path="/" element={<ComplianceCommandCenter />} />
+                  <Route path="/rfp-wizard" element={<RFPWizard />} />
+                  <Route path="/supplier-scoring" element={<SupplierScoring />} />
+                  <Route path="/risk-mitigation" element={<RiskMitigation />} />
+                  <Route path="/supplier-portal" element={<SupplierPortal />} />
+                  <Route path="/audit-trail" element={<AuditTrail />} />
+                  {/* Dynamic supplier routes */}
+                  <Route path="/supplier/:id/reasoning" element={<AgentReasoning />} />
+                  <Route path="/supplier/:id/portal" element={<SupplierPortal />} />
+                  <Route path="/supplier/:id/risk" element={<RiskMitigation />} />
+                  <Route path="/supplier/:id/audit" element={<AuditTrail />} />
+                </Routes>
+              </main>
+            </div>
+          </Router>
+        </SupplierProvider>
+      </BedrockAgentProvider>
+    </QueryClientProvider>
   );
 }
 
