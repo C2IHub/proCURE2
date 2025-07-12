@@ -16,6 +16,80 @@ import {
 import { masterSuppliers, getSupplierById } from '../data/masterSuppliers';
 import { complianceRequirementsMapping } from '../data/complianceRequirements';
 
+// Function to calculate dynamic metrics from actual supplier data
+function calculateDynamicMetrics(): Metric[] {
+  const suppliers = generateMockSuppliers();
+  
+  // Calculate critical alerts (suppliers with critical compliance status or high risk)
+  const criticalAlerts = suppliers.filter(s => 
+    s.complianceScore.status === 'critical' || s.riskScore.level === 'high'
+  ).length;
+  
+  // Calculate compliant suppliers (suppliers with compliant status)
+  const compliantSuppliers = suppliers.filter(s => 
+    s.complianceScore.status === 'compliant'
+  ).length;
+  
+  // Calculate pending reviews (suppliers with warning status or expiring soon)
+  const pendingReviews = suppliers.filter(s => 
+    s.complianceScore.status === 'warning' || s.riskScore.level === 'medium'
+  ).length;
+  
+  // Calculate average compliance score
+  const avgComplianceScore = suppliers.length > 0 
+    ? (suppliers.reduce((sum, s) => sum + s.complianceScore.overall, 0) / suppliers.length)
+    : 0;
+  
+  // Calculate trends (simplified - comparing current vs baseline)
+  const baselineCritical = 5; // Previous baseline for comparison
+  const baselineCompliant = 835; // Previous baseline
+  const baselinePending = 19; // Previous baseline
+  const baselineAvgScore = 91.1; // Previous baseline
+  
+  return [
+    {
+      id: '1',
+      title: 'Critical Alerts',
+      value: criticalAlerts.toString(),
+      change: `${criticalAlerts - baselineCritical >= 0 ? '+' : ''}${criticalAlerts - baselineCritical} from baseline`,
+      trend: criticalAlerts <= baselineCritical ? 'down' : 'up',
+      icon: 'AlertTriangle',
+      color: 'red',
+      category: 'compliance'
+    },
+    {
+      id: '2',
+      title: 'Compliant Suppliers',
+      value: compliantSuppliers.toString(),
+      change: `${compliantSuppliers - baselineCompliant >= 0 ? '+' : ''}${compliantSuppliers - baselineCompliant} from baseline`,
+      trend: compliantSuppliers >= baselineCompliant ? 'up' : 'down',
+      icon: 'CheckCircle',
+      color: 'green',
+      category: 'compliance'
+    },
+    {
+      id: '3',
+      title: 'Pending Reviews',
+      value: pendingReviews.toString(),
+      change: `${pendingReviews - baselinePending >= 0 ? '+' : ''}${pendingReviews - baselinePending} from baseline`,
+      trend: pendingReviews <= baselinePending ? 'down' : 'up',
+      icon: 'Clock',
+      color: 'yellow',
+      category: 'compliance'
+    },
+    {
+      id: '4',
+      title: 'Avg. Compliance Score',
+      value: `${avgComplianceScore.toFixed(1)}%`,
+      change: `${avgComplianceScore - baselineAvgScore >= 0 ? '+' : ''}${(avgComplianceScore - baselineAvgScore).toFixed(1)}% from baseline`,
+      trend: avgComplianceScore >= baselineAvgScore ? 'up' : 'down',
+      icon: 'TrendingUp',
+      color: 'blue',
+      category: 'compliance'
+    }
+  ];
+}
+
 // Use the compliance requirements from the dedicated file
 const allComplianceRequirements = complianceRequirementsMapping;
 
@@ -280,49 +354,6 @@ const mockAgents: AgentStatus[] = [
   }
 ];
 
-const mockMetrics: Metric[] = [
-  {
-    id: '1',
-    title: 'Critical Alerts',
-    value: '3',
-    change: '-2 from yesterday',
-    trend: 'down',
-    icon: 'AlertTriangle',
-    color: 'red',
-    category: 'compliance'
-  },
-  {
-    id: '2',
-    title: 'Compliant Suppliers',
-    value: '847',
-    change: '+12 this week',
-    trend: 'up',
-    icon: 'CheckCircle',
-    color: 'green',
-    category: 'compliance'
-  },
-  {
-    id: '3',
-    title: 'Pending Reviews',
-    value: '24',
-    change: '+5 since yesterday',
-    trend: 'up',
-    icon: 'Clock',
-    color: 'yellow',
-    category: 'compliance'
-  },
-  {
-    id: '4',
-    title: 'Avg. Compliance Score',
-    value: '92.3%',
-    change: '+1.2% this month',
-    trend: 'up',
-    icon: 'TrendingUp',
-    color: 'blue',
-    category: 'compliance'
-  }
-];
-
 // API simulation delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -386,8 +417,9 @@ export const agentApi = {
 export const metricsApi = {
   async getMetrics(): Promise<ApiResponse<Metric[]>> {
     await delay(300);
+    const dynamicMetrics = calculateDynamicMetrics();
     return {
-      data: mockMetrics,
+      data: dynamicMetrics,
       timestamp: new Date().toISOString()
     };
   },
