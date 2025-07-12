@@ -141,4 +141,4 @@ export default function Navigation({ currentUser }: NavigationProps) {
       </div>
     </div>
   );
-    <nav className="px-4 py-4 space-y-1">
+}
