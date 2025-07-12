@@ -28,9 +28,9 @@ export default function Navigation({ currentUser }: NavigationProps) {
 
   const navigation = [
     { name: 'Compliance Dashboard', href: '/', icon: Shield },
-    { name: 'Risk Management', href: '/risk-mitigation', icon: ShieldAlert },
-    { name: 'RFP Generator', href: '/rfp-wizard', icon: FileText },
     { name: 'Supplier Analytics', href: '/supplier-scoring', icon: BarChart3 },
+    { name: 'RFP Generator', href: '/rfp-wizard', icon: FileText },
+    { name: 'Risk Management', href: '/risk-mitigation', icon: ShieldAlert },
     { name: 'Compliance Records', href: '/audit-trail', icon: ClipboardList },
   ];
 
