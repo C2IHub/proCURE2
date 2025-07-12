@@ -775,7 +775,7 @@ Format as a professional RFP document.`;
                     <div
                       key={supplier.id}
                       onClick={() => toggleSupplier(supplier.id)}
-                      className={`border rounded-xl p-6 cursor-pointer transition-all hover:shadow-md h-80 flex flex-col ${
+                      className={`border rounded-xl p-6 cursor-pointer transition-all hover:shadow-md ${
                         selectedSuppliers.includes(supplier.id)
                           ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                           : 'border-gray-200 bg-white'
@@ -784,8 +784,8 @@ Format as a professional RFP document.`;
                       {/* Header */}
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[3.5rem]">{supplier.name}</h4>
-                          <p className="text-sm text-gray-600 mb-2 h-5">{supplier.category}</p>
+                          <h4 className="text-lg font-semibold text-gray-900 mb-1">{supplier.name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">{supplier.category}</p>
                           <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getSupplierRatingColor(supplier.supplierRating)}`}>
                             <Star className="h-3 w-3 mr-1" />
                             {supplier.supplierRating.toUpperCase()}
@@ -821,7 +821,7 @@ Format as a professional RFP document.`;
                       </div>
 
                       {/* Relevant Certifications */}
-                      <div className="mb-3 flex-1">
+                      <div className="mb-3">
                         <p className="text-xs font-medium text-gray-700 mb-2">Relevant Certifications:</p>
                         <div className="flex flex-wrap gap-1">
                           {supplier.certifications.slice(0, 2).map((cert, index) => (
@@ -838,7 +838,7 @@ Format as a professional RFP document.`;
                       </div>
 
                       {/* Selection Indicator */}
-                      <div className="flex items-center justify-center mt-auto">
+                      <div className="flex items-center justify-center">
                         <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
                           selectedSuppliers.includes(supplier.id)
                             ? 'border-blue-500 bg-blue-500'

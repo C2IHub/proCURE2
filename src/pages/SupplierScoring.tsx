@@ -185,12 +185,12 @@ export default function SupplierScoring() {
       {/* Suppliers Grid */}
       <div className={`grid gap-6 ${
         viewMode === 'cards' 
-          ? 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3' 
+                ? 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
           : 'grid-cols-1'
       }`}>
         {filteredSuppliers.map((supplier) => (
           <div key={supplier.id} className={`bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 ${
-            viewMode === 'cards' ? 'p-6 h-80 flex flex-col' : 'p-4'
+            viewMode === 'cards' ? 'p-6' : 'p-4'
           }`}>
             {viewMode === 'cards' ? (
               // Card View
@@ -198,8 +198,8 @@ export default function SupplierScoring() {
                 {/* Header with Score Circle */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[3.5rem]">{supplier.name}</h3>
-                    <p className="text-sm text-gray-600 mb-2 h-5">{supplier.category}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{supplier.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{supplier.category}</p>
                     
                     {/* Supplier Rating Badge */}
                     <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getSupplierRatingColor(supplier.supplierRating)}`}>
@@ -251,7 +251,7 @@ export default function SupplierScoring() {
                 </div>
 
                 {/* Certifications Preview */}
-                <div className="mb-4 flex-1">
+                <div className="mb-4">
                   <div className="flex flex-wrap gap-1">
                     {supplier.certifications.slice(0, 3).map((cert, index) => (
                       <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
@@ -267,7 +267,7 @@ export default function SupplierScoring() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex space-x-2 mt-auto">
+                <div className="flex space-x-2">
                   <button 
                     onClick={() => navigate(`/supplier/${supplier.id}/portal`)} 
                     className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center justify-center"
