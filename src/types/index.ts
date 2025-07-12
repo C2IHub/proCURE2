@@ -7,7 +7,7 @@ export interface Supplier {
   complianceScore: ComplianceScore;
   riskScore: RiskScore;
   lastAudit: string;
-  supplierRating: 'preferred' | 'approved' | 'conditional' | 'restricted';
+  supplierRating: 'preferred' | 'approved' | 'conditional';
   certifications: string[];
   lastUpdated: string;
 }

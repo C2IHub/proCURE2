@@ -36,7 +36,7 @@ interface RFPItem {
 export default function RFPTracker() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
   const navigate = useNavigate();
 
   // Mock RFP data - in real app, this would come from API
@@ -260,49 +260,31 @@ export default function RFPTracker() {
       </div>
 
       {/* Filters and Controls */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Filter className="h-5 w-5 text-gray-400" />
-              <span className="text-sm font-medium text-gray-700">Filter by status:</span>
-            </div>
-            <div className="flex space-x-2">
-              {['all', 'draft', 'sent', 'responses_received', 'evaluation', 'awarded', 'closed'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg capitalize transition-colors ${
-                    statusFilter === status
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {status === 'all' ? 'All' : formatStatus(status)}
-                </button>
-              ))}
-            </div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+        {/* Top Row - Status Filters */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <Filter className="h-5 w-5 text-gray-400" />
+            <span className="text-sm font-medium text-gray-700">Status:</span>
+            {['all', 'draft', 'sent', 'responses_received', 'evaluation', 'awarded', 'closed'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg capitalize transition-colors ${
+                  statusFilter === status
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {status === 'all' ? 'All' : formatStatus(status)}
+              </button>
+            ))}
           </div>
+        </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                  viewMode === 'cards' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                Cards
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                  viewMode === 'table' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                Table
-              </button>
-            </div>
+        {/* Bottom Row - Search and View Controls */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -313,10 +295,31 @@ export default function RFPTracker() {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            <button className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </button>
+            
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                    viewMode === 'table' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  Table
+                </button>
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                    viewMode === 'cards' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  Cards
+                </button>
+              </div>
+              <button className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </button>
+            </div>
           </div>
         </div>
       </div>

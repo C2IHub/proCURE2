@@ -289,8 +289,8 @@ function determineSupplierRating(complianceScore: ComplianceScore, riskScore: Ri
   if (complianceScore.overall >= 90 && riskScore.level === 'low') return 'preferred';
   if (complianceScore.overall >= 90 && riskScore.level === 'medium') return 'approved';
   if (complianceScore.overall >= 70 && riskScore.level === 'low') return 'approved';
-  if (complianceScore.overall >= 70 && riskScore.level === 'medium') return 'conditional';
-  if (complianceScore.overall < 70) return 'restricted';
+  if (complianceScore.overall >= 70 && riskScore.level === 'medium') return 'approved';
+  if (complianceScore.overall < 70) return 'conditional';
   if (riskScore.level === 'high') return 'conditional';
   return 'conditional';
 }

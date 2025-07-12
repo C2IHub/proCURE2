@@ -46,7 +46,6 @@ export default function SupplierScoring() {
       case 'preferred': return 'text-green-600 bg-green-50 border-green-200';
       case 'approved': return 'text-blue-600 bg-blue-50 border-blue-200';
       case 'conditional': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'restricted': return 'text-red-600 bg-red-50 border-red-200';
       default: return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
@@ -56,7 +55,6 @@ export default function SupplierScoring() {
       case 'preferred': return <Star className="h-4 w-4" />;
       case 'approved': return <CheckCircle className="h-4 w-4" />;
       case 'conditional': return <AlertTriangle className="h-4 w-4" />;
-      case 'restricted': return <Shield className="h-4 w-4" />;
       default: return <Shield className="h-4 w-4" />;
     }
   };
@@ -247,22 +245,6 @@ export default function SupplierScoring() {
                   <div className="flex items-center">
                     {getTrendIcon(supplier.complianceScore.trend)}
                     <span className="text-sm text-gray-600 ml-1">Trending</span>
-                  </div>
-                </div>
-
-                {/* Certifications Preview */}
-                <div className="mb-4">
-                  <div className="flex flex-wrap gap-1">
-                    {supplier.certifications.slice(0, 3).map((cert, index) => (
-                      <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
-                        {cert}
-                      </span>
-                    ))}
-                    {supplier.certifications.length > 3 && (
-                      <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs font-medium rounded">
-                        +{supplier.certifications.length - 3} more
-                      </span>
-                    )}
                   </div>
                 </div>
 
