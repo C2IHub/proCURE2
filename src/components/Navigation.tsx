@@ -68,8 +68,8 @@ export default function Navigation({ currentUser }: NavigationProps) {
         <div className="flex items-center">
           <Shield className="h-8 w-8 text-blue-600" />
           <div className="ml-3">
-            <h1 className="text-lg font-semibold text-gray-900">PharmaCompliance</h1>
-            <p className="text-xs text-gray-500">AI-Powered Evaluation</p>
+            <h1 className="text-lg font-semibold text-gray-900">Life Sciences proCURE</h1>
+            <p className="text-xs text-gray-500">AI-Powered Procurement</p>
           </div>
         </div>
       </div>
@@ -141,4 +141,4 @@ export default function Navigation({ currentUser }: NavigationProps) {
       </div>
     </div>
   );
-}
+    <nav className="px-4 py-4 space-y-1">
