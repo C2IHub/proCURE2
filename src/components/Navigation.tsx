@@ -26,13 +26,39 @@ export default function Navigation({ currentUser }: NavigationProps) {
   const location = useLocation();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const navigation = [
+  const coreAnalytics = [
     { name: 'Compliance Dashboard', href: '/', icon: Shield },
-    { name: 'Supplier Analytics', href: '/supplier-scoring', icon: BarChart3 },
-    { name: 'RFP Generator', href: '/rfp-wizard', icon: FileText },
     { name: 'Risk Management', href: '/risk-mitigation', icon: ShieldAlert },
+    { name: 'Supplier Intelligence', href: '/supplier-scoring', icon: BarChart3 },
+  ];
+
+  const processManagement = [
+    { name: 'RFP Generator', href: '/rfp-wizard', icon: FileText },
+  ];
+
+  const recordsAudit = [
     { name: 'Compliance Records', href: '/audit-trail', icon: ClipboardList },
   ];
+
+  const renderNavSection = (items: typeof coreAnalytics) => {
+    return items.map((item) => {
+      const isActive = location.pathname === item.href;
+      return (
+        <Link
+          key={item.name}
+          to={item.href}
+          className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+            isActive
+              ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+          }`}
+        >
+          <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+          {item.name}
+        </Link>
+      );
+    });
+  };
 
   return (
     <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200">
@@ -61,23 +87,20 @@ export default function Navigation({ currentUser }: NavigationProps) {
 
       {/* Navigation */}
       <nav className="px-4 pb-4 space-y-1">
-        {navigation.map((item) => {
-          const isActive = location.pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
-              {item.name}
-            </Link>
-          );
-        })}
+        {/* Core Analytics Section */}
+        <div className="space-y-1">
+          {renderNavSection(coreAnalytics)}
+        </div>
+
+        {/* Separator */}
+        <div className="border-t border-gray-200 pt-4">
+          {renderNavSection(processManagement)}
+        </div>
+
+        {/* Separator */}
+        <div className="border-t border-gray-200 pt-4">
+          {renderNavSection(recordsAudit)}
+        </div>
       </nav>
 
       {/* User Profile */}
