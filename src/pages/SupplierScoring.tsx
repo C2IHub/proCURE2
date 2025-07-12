@@ -34,6 +34,16 @@ export default function SupplierScoring() {
     }
   };
 
+  const getSupplierRatingColor = (rating: string) => {
+    switch (rating) {
+      case 'preferred': return 'text-green-600 bg-green-50';
+      case 'approved': return 'text-blue-600 bg-blue-50';
+      case 'conditional': return 'text-yellow-600 bg-yellow-50';
+      case 'restricted': return 'text-red-600 bg-red-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
   const getTrendIcon = (trend: string) => {
     switch (trend) {
       case 'up': return <TrendingUp className="h-4 w-4 text-green-600" />;
@@ -151,61 +161,118 @@ export default function SupplierScoring() {
                 <p className="text-sm text-gray-600">{supplier.category}</p>
               </div>
               <div className="text-right">
-                <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(supplier.overallScore)}`}>
-                  {supplier.overallScore}/100
+                <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(supplier.complianceScore.overall)}`}>
+                  {supplier.complianceScore.overall}/100
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Overall Score</p>
+                <p className="text-xs text-gray-500 mt-1">Compliance Score</p>
               </div>
             </div>
 
-            {/* Scoring Breakdown */}
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <span className={`text-lg font-bold ${getScoreColor(supplier.compliance.score).split(' ')[0]}`}>
-                    {supplier.compliance.score}
-                  </span>
-                  <div className="ml-1">
-                    {getTrendIcon(supplier.compliance.trend)}
+            {/* Compliance Breakdown */}
+            <div className="mb-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Compliance Breakdown</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <span className={`text-sm font-bold ${getScoreColor(supplier.complianceScore.certifications).split(' ')[0]}`}>
+                      {supplier.complianceScore.certifications}
+                    </span>
                   </div>
+                  <p className="text-xs text-gray-600">Certifications</p>
                 </div>
-                <p className="text-xs text-gray-600">Compliance</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <span className={`text-lg font-bold ${getScoreColor(supplier.quality.score).split(' ')[0]}`}>
-                    {supplier.quality.score}
-                  </span>
-                  <div className="ml-1">
-                    {getTrendIcon(supplier.quality.trend)}
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <span className={`text-sm font-bold ${getScoreColor(supplier.complianceScore.audits).split(' ')[0]}`}>
+                      {supplier.complianceScore.audits}
+                    </span>
                   </div>
+                  <p className="text-xs text-gray-600">Audits</p>
                 </div>
-                <p className="text-xs text-gray-600">Quality</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <span className={`text-lg font-bold ${getScoreColor(supplier.sustainability.score).split(' ')[0]}`}>
-                    {supplier.sustainability.score}
-                  </span>
-                  <div className="ml-1">
-                    {getTrendIcon(supplier.sustainability.trend)}
-                  </div>
-                </div>
-                <p className="text-xs text-gray-600">Sustainability</p>
               </div>
             </div>
 
-            {/* Risk Level and Last Audit */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <span className="text-sm text-gray-600 mr-2">Risk Level:</span>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getRiskColor(supplier.riskLevel)}`}>
-                  {supplier.riskLevel}
+            {/* Risk Assessment */}
+            <div className="mb-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Risk Assessment</h4>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <span className={`text-sm font-bold ${getRiskColor(supplier.riskScore.level).split(' ')[0]}`}>
+                      {supplier.riskScore.overall}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600">Risk Score</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <span className={`text-sm font-bold ${getRiskColor(supplier.riskScore.level).split(' ')[0]}`}>
+                      {supplier.riskScore.probability}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600">Risk Probability</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <span className={`text-sm font-bold capitalize ${getRiskColor(supplier.riskScore.level).split(' ')[0]}`}>
+                      {supplier.riskScore.level}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600">Risk Level</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Supplier Rating */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Supplier Rating:</span>
+                <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getSupplierRatingColor(supplier.supplierRating)}`}>
+                  {supplier.supplierRating}
                 </span>
               </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Clock className="h-4 w-4 mr-1" />
-                Last audit: {supplier.lastAudit}
+            </div>
+
+            {/* Status and Trends */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-600">Compliance Status</span>
+                  <div className="flex items-center">
+                    <span className={`text-xs font-medium ${getScoreColor(supplier.complianceScore.overall).split(' ')[0]}`}>
+                      {supplier.complianceScore.status}
+                    </span>
+                    <div className="ml-1">
+                      {getTrendIcon(supplier.complianceScore.trend)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-600">Risk Trend</span>
+                  <div className="flex items-center">
+                    <span className={`text-xs font-medium ${getRiskColor(supplier.riskScore.level).split(' ')[0]}`}>
+                      {supplier.riskScore.trend}
+                    </span>
+                    <div className="ml-1">
+                      {getTrendIcon(supplier.riskScore.trend === 'improving' ? 'up' : supplier.riskScore.trend === 'deteriorating' ? 'down' : 'stable')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Last Updated */}
+            <div className="mb-4">
+              <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
+                <div className="text-center">
+                  <Clock className="h-3 w-3 mx-auto mb-1" />
+                  <p>Compliance: {new Date(supplier.complianceScore.lastCalculated).toLocaleDateString()}</p>
+                </div>
+                <div className="text-center">
+                  <Clock className="h-3 w-3 mx-auto mb-1" />
+                  <p>Risk: {new Date(supplier.riskScore.lastCalculated).toLocaleDateString()}</p>
+                </div>
               </div>
             </div>
 

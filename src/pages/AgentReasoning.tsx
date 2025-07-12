@@ -270,11 +270,11 @@ Review document completeness, validity, and compliance with current regulations.
                 {/* Default decision breakdown for demo */}
                 <div className="bg-blue-50 rounded-lg p-4">
                   <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                    {supplier ? `${supplier.name} - Compliance Score: ${supplier.compliance.score}%` : 'Sample Analysis'}
+                    {supplier ? `${supplier.name} - Compliance Score: ${supplier.complianceScore.overall}%` : 'Sample Analysis'}
                   </h4>
                   <p className="text-gray-600">
                     {supplier 
-                      ? `${supplier.riskLevel.toUpperCase()} risk supplier with ${supplier.compliance.status} compliance status`
+                      ? `${supplier.riskScore.level.toUpperCase()} risk supplier with ${supplier.complianceScore.status} compliance status`
                       : 'High compliance score based on comprehensive analysis'
                     }
                   </p>
@@ -289,50 +289,35 @@ Review document completeness, validity, and compliance with current regulations.
                         <div className="border border-gray-200 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-medium text-gray-900">Compliance</span>
-                            <span className="font-semibold text-gray-900">{supplier.compliance.score}/100</span>
+                            <span className="font-semibold text-gray-900">{supplier.complianceScore.overall}/100</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
                               className={`h-2 rounded-full ${
-                                supplier.compliance.score >= 90 ? 'bg-green-500' :
-                                supplier.compliance.score >= 75 ? 'bg-yellow-500' : 'bg-red-500'
+                                supplier.complianceScore.overall >= 90 ? 'bg-green-500' :
+                                supplier.complianceScore.overall >= 75 ? 'bg-yellow-500' : 'bg-red-500'
                               }`}
-                              style={{ width: `${supplier.compliance.score}%` }}
+                              style={{ width: `${supplier.complianceScore.overall}%` }}
                             ></div>
                           </div>
                         </div>
                         
                         <div className="border border-gray-200 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-gray-900">Quality</span>
-                            <span className="font-semibold text-gray-900">{supplier.quality.score}/100</span>
+                            <span className="font-medium text-gray-900">Risk Score</span>
+                            <span className="font-semibold text-gray-900">{supplier.riskScore.overall}/100</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
                               className={`h-2 rounded-full ${
-                                supplier.quality.score >= 90 ? 'bg-green-500' :
-                                supplier.quality.score >= 75 ? 'bg-yellow-500' : 'bg-red-500'
+                                supplier.riskScore.overall <= 30 ? 'bg-green-500' :
+                                supplier.riskScore.overall <= 60 ? 'bg-yellow-500' : 'bg-red-500'
                               }`}
-                              style={{ width: `${supplier.quality.score}%` }}
+                              style={{ width: `${supplier.riskScore.overall}%` }}
                             ></div>
                           </div>
                         </div>
 
-                        <div className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-gray-900">Sustainability</span>
-                            <span className="font-semibold text-gray-900">{supplier.sustainability.score}/100</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full ${
-                                supplier.sustainability.score >= 90 ? 'bg-green-500' :
-                                supplier.sustainability.score >= 75 ? 'bg-yellow-500' : 'bg-red-500'
-                              }`}
-                              style={{ width: `${supplier.sustainability.score}%` }}
-                            ></div>
-                          </div>
-                        </div>
                       </div>
                     </div>
 
@@ -350,7 +335,11 @@ Review document completeness, validity, and compliance with current regulations.
                         </div>
                         <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                           <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700">Last audit: {supplier.lastAudit}</span>
+                          <span className="text-gray-700">Supplier Rating: {supplier.supplierRating.toUpperCase()}</span>
+                        </div>
+                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Risk Level: {supplier.riskScore.level.toUpperCase()}</span>
                         </div>
                       </div>
                     </div>
