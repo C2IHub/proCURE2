@@ -327,13 +327,13 @@ export default function RFPTracker() {
           {filteredRFPs.map((rfp) => {
             const daysUntilDeadline = getDaysUntilDeadline(rfp.deadline);
             return (
-              <div key={rfp.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+              <div key={rfp.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow h-80 flex flex-col">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{rfp.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{rfp.id}</p>
-                    <div className="flex flex-wrap gap-1 mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[3.5rem]">{rfp.title}</h3>
+                    <p className="text-sm text-gray-600 mb-2 h-5">{rfp.id}</p>
+                    <div className="flex flex-wrap gap-1 mb-2 min-h-[1.5rem]">
                       {rfp.categories.map((category, index) => (
                         <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
                           {category}
@@ -352,7 +352,7 @@ export default function RFPTracker() {
                 </div>
 
                 {/* Status */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <div className={`flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStatusColor(rfp.status)}`}>
                     {getStatusIcon(rfp.status)}
                     <span className="ml-2">{formatStatus(rfp.status)}</span>
@@ -369,7 +369,7 @@ export default function RFPTracker() {
                 </div>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-3">
                   <div className="text-center">
                     <div className="text-lg font-bold text-gray-900">{rfp.responsesReceived}/{rfp.suppliersInvited}</div>
                     <p className="text-xs text-gray-600">Responses</p>
@@ -386,7 +386,7 @@ export default function RFPTracker() {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-auto">
                   <div className="text-xs text-gray-500">
                     Last activity: {rfp.lastActivity}
                   </div>

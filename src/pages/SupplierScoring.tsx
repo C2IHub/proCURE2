@@ -190,16 +190,16 @@ export default function SupplierScoring() {
       }`}>
         {filteredSuppliers.map((supplier) => (
           <div key={supplier.id} className={`bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 ${
-            viewMode === 'cards' ? 'p-6' : 'p-4'
+            viewMode === 'cards' ? 'p-6 h-80 flex flex-col' : 'p-4'
           }`}>
             {viewMode === 'cards' ? (
               // Card View
               <>
                 {/* Header with Score Circle */}
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{supplier.name}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{supplier.category}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[3.5rem]">{supplier.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2 h-5">{supplier.category}</p>
                     
                     {/* Supplier Rating Badge */}
                     <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getSupplierRatingColor(supplier.supplierRating)}`}>
@@ -220,7 +220,7 @@ export default function SupplierScoring() {
                 </div>
 
                 {/* Key Metrics */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="text-center">
                     <div className={`text-xl font-bold ${getRiskColor(supplier.riskScore.level).split(' ')[0]}`}>
                       {supplier.riskScore.level.toUpperCase()}
@@ -236,7 +236,7 @@ export default function SupplierScoring() {
                 </div>
 
                 {/* Status Indicators */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <div className={`w-3 h-3 rounded-full mr-2 ${
                       supplier.complianceScore.status === 'compliant' ? 'bg-green-500' :
@@ -251,7 +251,7 @@ export default function SupplierScoring() {
                 </div>
 
                 {/* Certifications Preview */}
-                <div className="mb-6">
+                <div className="mb-4 flex-1">
                   <div className="flex flex-wrap gap-1">
                     {supplier.certifications.slice(0, 3).map((cert, index) => (
                       <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
@@ -267,7 +267,7 @@ export default function SupplierScoring() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 mt-auto">
                   <button 
                     onClick={() => navigate(`/supplier/${supplier.id}/portal`)} 
                     className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center justify-center"
