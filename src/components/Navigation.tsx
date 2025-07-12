@@ -31,7 +31,6 @@ export default function Navigation({ currentUser }: NavigationProps) {
     { name: 'Risk Management', href: '/risk-mitigation', icon: ShieldAlert },
     { name: 'RFP Generator', href: '/rfp-wizard', icon: FileText },
     { name: 'Supplier Analytics', href: '/supplier-scoring', icon: BarChart3 },
-    { name: 'Supplier Collaboration', href: '/supplier-portal', icon: Users },
     { name: 'Compliance Records', href: '/audit-trail', icon: ClipboardList },
   ];
 

@@ -294,14 +294,15 @@ export default function SupplierScoring() {
                 onClick={() => navigate(`/supplier/${supplier.id}/portal`)} 
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
               >
-                <Brain className="h-4 w-4 mr-1 inline-block" />
-                AI Analysis
+                <FileText className="h-4 w-4 mr-1 inline-block" />
+                Supplier Documentation
               </button>
               <button 
                 onClick={() => navigate(`/supplier/${supplier.id}/reasoning`)}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
               >
-                View Details
+                <Brain className="h-4 w-4 mr-1 inline-block" />
+                AI Analysis
               </button>
             </div>
           </div>

@@ -43,13 +43,10 @@ function App() {
                   <Route path="/rfp-wizard" element={<RFPWizard />} />
                   <Route path="/supplier-scoring" element={<SupplierScoring />} />
                   <Route path="/risk-mitigation" element={<RiskMitigation />} />
-                  <Route path="/supplier-portal" element={<SupplierPortal />} />
                   <Route path="/audit-trail" element={<AuditTrail />} />
                   {/* Dynamic supplier routes */}
                   <Route path="/supplier/:id/reasoning" element={<AgentReasoning />} />
                   <Route path="/supplier/:id/portal" element={<SupplierPortal />} />
-                  <Route path="/supplier/:id/risk" element={<RiskMitigation />} />
-                  <Route path="/supplier/:id/audit" element={<AuditTrail />} />
                 </Routes>
               </main>
             </div>
