@@ -43,8 +43,8 @@ export default function AgentReasoning() {
           agent = complianceAgent;
           prompt = `Analyze the compliance status for supplier "${supplier.name}" with the following details:
 - Category: ${supplier.category}
-- Current compliance score: ${supplier.compliance.score}
-- Risk level: ${supplier.riskLevel}
+- Current compliance score: ${supplier.complianceScore.overall}
+- Risk level: ${supplier.riskScore.level}
 - Certifications: ${supplier.certifications.join(', ')}
 - Last audit: ${supplier.lastAudit}
 
@@ -54,10 +54,9 @@ Please provide a detailed compliance analysis including strengths, areas for imp
         case 'risk':
           agent = riskAgent;
           prompt = `Perform a risk assessment for supplier "${supplier.name}" with the following profile:
-- Overall score: ${supplier.overallScore}
-- Risk level: ${supplier.riskLevel}
-- Quality score: ${supplier.quality.score} (trend: ${supplier.quality.trend})
-- Sustainability score: ${supplier.sustainability.score} (trend: ${supplier.sustainability.trend})
+- Overall risk score: ${supplier.riskScore.overall}
+- Risk level: ${supplier.riskScore.level}
+- Risk trend: ${supplier.riskScore.trend}
 - Category: ${supplier.category}
 
 Analyze potential risks and provide recommendations for risk mitigation.`;
@@ -331,7 +330,7 @@ Review document completeness, validity, and compliance with current regulations.
                         </div>
                         <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                           <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700">Risk Level: {supplier.riskLevel.toUpperCase()}</span>
+                          <span className="text-gray-700">Risk Level: {supplier.riskScore.level.toUpperCase()}</span>
                         </div>
                         <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                           <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
