@@ -290,20 +290,22 @@ export default function SupplierScoring() {
 
             {/* Actions */}
             <div className="flex space-x-2">
-              <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+              <button 
                 onClick={() => navigate(`/supplier/${supplier.id}/portal`)} 
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
-              <button 
-                onClick={() => navigate(`/supplier/${supplier.id}/portal`)}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
               >
-                <FileText className="h-4 w-4 mr-1 inline-block" />
                 <Brain className="h-4 w-4 mr-1 inline-block" />
                 AI Analysis
               </button>
-            </div>
+              <button 
                 onClick={() => navigate(`/supplier/${supplier.id}/reasoning`)}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+              >
+                View Details
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {filteredSuppliers.length === 0 && !isLoading && (
