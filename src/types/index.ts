@@ -4,19 +4,88 @@ export interface Supplier {
   id: string;
   name: string;
   category: string;
-  overallScore: number;
-  compliance: ScoreDetail;
-  quality: ScoreDetail;
-  sustainability: ScoreDetail;
+  complianceScore: ComplianceScore;
+  riskScore: RiskScore;
   lastAudit: string;
-  riskLevel: 'low' | 'medium' | 'high';
+  supplierRating: 'preferred' | 'approved' | 'conditional' | 'restricted';
   certifications: string[];
+  lastUpdated: string;
+}
+
+export interface ComplianceScore {
+  overall: number; // 0-100
+  certifications: number; // 40% weight
+  audits: number; // 30% weight
+  documentation: number; // 20% weight
+  regulatoryHistory: number; // 10% weight
+  status: 'compliant' | 'warning' | 'critical';
+  trend: 'up' | 'down' | 'stable';
+  lastCalculated: string;
+  nextReview: string;
+}
+
+export interface RiskScore {
+  overall: number; // 0-100 (0 = no risk, 100 = maximum risk)
+  level: 'low' | 'medium' | 'high';
+  financial: number; // 25% weight
+  operational: number; // 25% weight
+  qualityTrend: number; // 20% weight
+  supplyChain: number; // 15% weight
+  regulatory: number; // 15% weight
+  probability: number; // Probability of issues in next 12 months (0-100)
+  trend: 'improving' | 'stable' | 'deteriorating';
+  lastCalculated: string;
+  nextAssessment: string;
 }
 
 export interface ScoreDetail {
   score: number;
   trend: 'up' | 'down' | 'stable';
   status: 'compliant' | 'warning' | 'critical' | 'good' | 'excellent';
+}
+
+// Master supplier data structure
+export interface SupplierMaster {
+  id: string;
+  name: string;
+  category: string;
+  region: string;
+  establishedYear: number;
+  employeeCount: number;
+  annualRevenue: string;
+  facilities: string[];
+  primaryContact: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  onboardingDate: string;
+  status: 'active' | 'inactive' | 'pending';
+}
+
+// Compliance requirements mapping
+export interface ComplianceRequirement {
+  id: string;
+  supplierId: string;
+  category: string;
+  requirements: RequirementDetail[];
+  region: string;
+  lastUpdated: string;
+}
+
+export interface RequirementDetail {
+  id: string;
+  name: string;
+  type: 'certification' | 'documentation' | 'audit' | 'process';
+  mandatory: boolean;
+  description: string;
+  validityPeriod: number; // in months
+  renewalNotice: number; // days before expiry
+  regulatoryBody: string;
+  currentStatus: 'valid' | 'expiring' | 'expired' | 'pending' | 'not_applicable';
+  expiryDate?: string;
+  lastVerified?: string;
+  documentUrl?: string;
 }
 
 export interface AgentStatus {
