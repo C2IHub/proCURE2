@@ -34,10 +34,11 @@ export default function Navigation({ currentUser }: NavigationProps) {
 
   const processManagement = [
     { name: 'RFP Generator', href: '/rfp-wizard', icon: FileText },
+    { name: 'RFP Tracker', href: '/rfp-tracker', icon: ClipboardList },
   ];
 
   const recordsAudit = [
-    { name: 'Compliance Records', href: '/audit-trail', icon: ClipboardList },
+    { name: 'Compliance Records', href: '/audit-trail', icon: FileText },
   ];
 
   const renderNavSection = (items: typeof coreAnalytics) => {

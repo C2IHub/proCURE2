@@ -5,6 +5,7 @@ import Navigation from './components/Navigation';
 import AgentReasoning from './pages/AgentReasoning';
 import ComplianceCommandCenter from './pages/ComplianceCommandCenter';
 import RFPWizard from './pages/RFPWizard';
+import RFPTracker from './pages/RFPTracker';
 import SupplierScoring from './pages/SupplierScoring';
 import RiskMitigation from './pages/RiskMitigation';
 import SupplierPortal from './pages/SupplierPortal';
@@ -41,6 +42,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<ComplianceCommandCenter />} />
                   <Route path="/rfp-wizard" element={<RFPWizard />} />
+                  <Route path="/rfp-tracker" element={<RFPTracker />} />
                   <Route path="/supplier-scoring" element={<SupplierScoring />} />
                   <Route path="/risk-mitigation" element={<RiskMitigation />} />
                   <Route path="/audit-trail" element={<AuditTrail />} />
