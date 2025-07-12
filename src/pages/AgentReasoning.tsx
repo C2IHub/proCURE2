@@ -1,57 +1,23 @@
-import React, { useState } from 'react';
-import { Brain, Eye, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Brain, Eye, CheckCircle, ArrowLeft, MessageSquare, Loader } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAgents, useSupplier } from '../hooks/useApi';
+import { useComplianceAgent, useRiskAgent, useDocumentAgent } from '../context/BedrockAgentProvider';
 
 export default function AgentReasoning() {
+  const { id: supplierId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [expandedAgent, setExpandedAgent] = useState<string | null>('compliance-analyzer');
-  const [selectedDecision, setSelectedDecision] = useState<string | null>('decision-1');
+  const [agentResponse, setAgentResponse] = useState<string>('');
+  const [isInvoking, setIsInvoking] = useState(false);
+  const [selectedAgentType, setSelectedAgentType] = useState<'compliance' | 'risk' | 'document'>('compliance');
 
-  const agents = [
-    {
-      id: 'compliance-analyzer',
-      name: 'EU GMP Compliance Analyzer',
-      status: 'active',
-      description: 'Analyzing supplier compliance with EU GMP regulations',
-      confidence: 94,
-      lastUpdate: '2 minutes ago'
-    },
-    {
-      id: 'risk-assessor',
-      name: 'Predictive Risk Assessor',
-      status: 'completed',
-      description: 'Completed risk analysis for 15 suppliers',
-      confidence: 89,
-      lastUpdate: '15 minutes ago'
-    },
-    {
-      id: 'document-validator',
-      name: 'Document Validation Engine',
-      status: 'warning',
-      description: 'Found inconsistencies in supplier documentation',
-      confidence: 67,
-      lastUpdate: '1 hour ago'
-    }
-  ];
+  const { data: agents = [], isLoading: agentsLoading } = useAgents();
+  const { data: supplier, isLoading: supplierLoading } = useSupplier(supplierId || '');
 
-  const decisions = [
-    {
-      id: 'decision-1',
-      title: 'MedTech Solutions - Compliance Score: 92%',
-      reasoning: 'High compliance score based on comprehensive analysis',
-      factors: [
-        { factor: 'EU GMP Certification', score: 95, weight: 30 },
-        { factor: 'FDA Compliance', score: 88, weight: 25 },
-        { factor: 'Quality Management', score: 94, weight: 20 },
-        { factor: 'Environmental Standards', score: 90, weight: 15 },
-        { factor: 'Documentation Quality', score: 89, weight: 10 }
-      ],
-      keyFindings: [
-        'Valid EU GMP certificate expires in 18 months',
-        'Consistent quality metrics over past 24 months',
-        'Strong environmental compliance record',
-        'Minor documentation formatting issues identified'
-      ]
-    }
-  ];
+  const complianceAgent = useComplianceAgent();
+  const riskAgent = useRiskAgent();
+  const documentAgent = useDocumentAgent();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -62,6 +28,88 @@ export default function AgentReasoning() {
     }
   };
 
+  const handleAgentInvoke = async (agentType: 'compliance' | 'risk' | 'document') => {
+    if (!supplier) return;
+
+    setIsInvoking(true);
+    setSelectedAgentType(agentType);
+
+    try {
+      let agent;
+      let prompt = '';
+
+      switch (agentType) {
+        case 'compliance':
+          agent = complianceAgent;
+          prompt = `Analyze the compliance status for supplier "${supplier.name}" with the following details:
+- Category: ${supplier.category}
+- Current compliance score: ${supplier.compliance.score}
+- Risk level: ${supplier.riskLevel}
+- Certifications: ${supplier.certifications.join(', ')}
+- Last audit: ${supplier.lastAudit}
+
+Please provide a detailed compliance analysis including strengths, areas for improvement, and regulatory compliance status.`;
+          break;
+
+        case 'risk':
+          agent = riskAgent;
+          prompt = `Perform a risk assessment for supplier "${supplier.name}" with the following profile:
+- Overall score: ${supplier.overallScore}
+- Risk level: ${supplier.riskLevel}
+- Quality score: ${supplier.quality.score} (trend: ${supplier.quality.trend})
+- Sustainability score: ${supplier.sustainability.score} (trend: ${supplier.sustainability.trend})
+- Category: ${supplier.category}
+
+Analyze potential risks and provide recommendations for risk mitigation.`;
+          break;
+
+        case 'document':
+          agent = documentAgent;
+          prompt = `Validate documentation for supplier "${supplier.name}":
+- Certifications: ${supplier.certifications.join(', ')}
+- Last audit date: ${supplier.lastAudit}
+- Category: ${supplier.category}
+
+Review document completeness, validity, and compliance with current regulations.`;
+          break;
+      }
+
+      const response = await agent.invoke({
+        prompt,
+        sessionId: `supplier-${supplier.id}-${Date.now()}`,
+        context: { supplierId: supplier.id, supplierName: supplier.name }
+      });
+
+      setAgentResponse(response.response);
+    } catch (error) {
+      console.error('Error invoking agent:', error);
+      setAgentResponse('Error occurred while analyzing. Please try again.');
+    } finally {
+      setIsInvoking(false);
+    }
+  };
+
+  if (agentsLoading || supplierLoading) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+          <span className="ml-2 text-gray-600">Loading agent data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!supplier && supplierId) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">Supplier not found.</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -69,12 +117,17 @@ export default function AgentReasoning() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Reasoning & Explainability</h1>
         <div className="flex items-center">
           <button 
-            onClick={() => window.history.back()} 
+            onClick={() => navigate(-1)} 
             className="flex items-center text-blue-600 hover:text-blue-800 mb-2">
             <ArrowLeft className="h-4 w-4 mr-1" /> Back to Supplier Analytics
           </button>
         </div>
-        <p className="text-gray-600">Explore how AI agents make compliance decisions and understand their reasoning process</p>
+        <p className="text-gray-600">
+          {supplier 
+            ? `Explore how AI agents analyze compliance for ${supplier.name}`
+            : 'Explore how AI agents make compliance decisions and understand their reasoning process'
+          }
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -120,105 +173,197 @@ export default function AgentReasoning() {
                           ></div>
                         </div>
                       </div>
-                      <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700 font-medium">
-                        View detailed reasoning →
-                      </button>
                     </div>
                   )}
                 </div>
               ))}
             </div>
+
+            {/* AI Agent Interaction */}
+            {supplier && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="text-md font-semibold text-gray-900 mb-4">Ask AI Agents</h4>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleAgentInvoke('compliance')}
+                    disabled={isInvoking}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    {isInvoking && selectedAgentType === 'compliance' ? (
+                      <><Loader className="h-4 w-4 mr-2 animate-spin inline" />Analyzing...</>
+                    ) : (
+                      'Compliance Analysis'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleAgentInvoke('risk')}
+                    disabled={isInvoking}
+                    className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    {isInvoking && selectedAgentType === 'risk' ? (
+                      <><Loader className="h-4 w-4 mr-2 animate-spin inline" />Analyzing...</>
+                    ) : (
+                      'Risk Assessment'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleAgentInvoke('document')}
+                    disabled={isInvoking}
+                    className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    {isInvoking && selectedAgentType === 'document' ? (
+                      <><Loader className="h-4 w-4 mr-2 animate-spin inline" />Analyzing...</>
+                    ) : (
+                      'Document Validation'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Decision Breakdown */}
+        {/* Decision Breakdown / Agent Response */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Decision Breakdown</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {agentResponse ? 'AI Agent Analysis' : 'Decision Breakdown'}
+              </h3>
               <div className="flex items-center space-x-2">
                 <Eye className="h-5 w-5 text-blue-600" />
                 <span className="text-sm text-blue-600 font-medium">Explainable AI</span>
               </div>
             </div>
 
-            {decisions.map((decision) => (
-              <div key={decision.id} className="space-y-6">
-                {/* Decision Header */}
+            {agentResponse ? (
+              <div className="space-y-4">
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">{decision.title}</h4>
-                  <p className="text-gray-600">{decision.reasoning}</p>
+                  <div className="flex items-center mb-2">
+                    <MessageSquare className="h-5 w-5 text-blue-600 mr-2" />
+                    <h4 className="text-lg font-semibold text-gray-900">
+                      {selectedAgentType.charAt(0).toUpperCase() + selectedAgentType.slice(1)} Agent Response
+                    </h4>
+                  </div>
+                  {supplier && (
+                    <p className="text-sm text-gray-600 mb-3">Analysis for: {supplier.name}</p>
+                  )}
                 </div>
-
-                {/* Scoring Factors */}
-                <div>
-                  <h5 className="text-md font-semibold text-gray-900 mb-4">Scoring Factors & Weights</h5>
-                  <div className="space-y-3">
-                    {decision.factors.map((factor, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-gray-900">{factor.factor}</span>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-600">Weight: {factor.weight}%</span>
-                            <span className="font-semibold text-gray-900">{factor.score}/100</span>
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${
-                              factor.score >= 90 ? 'bg-green-500' :
-                              factor.score >= 75 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}
-                            style={{ width: `${factor.score}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
+                
+                <div className="prose max-w-none">
+                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                    {agentResponse}
                   </div>
                 </div>
 
-                {/* Key Findings */}
-                <div>
-                  <h5 className="text-md font-semibold text-gray-900 mb-4">Key Findings</h5>
-                  <div className="space-y-2">
-                    {decision.keyFindings.map((finding, index) => (
-                      <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{finding}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Decision Timeline */}
-                <div>
-                  <h5 className="text-md font-semibold text-gray-900 mb-4">Decision Timeline</h5>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Document analysis initiated</p>
-                        <p className="text-xs text-gray-500">2 hours ago</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Compliance checks completed</p>
-                        <p className="text-xs text-gray-500">1 hour ago</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Final score calculated</p>
-                        <p className="text-xs text-gray-500">30 minutes ago</p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setAgentResponse('')}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    ← Back to overview
+                  </button>
                 </div>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-6">
+                {/* Default decision breakdown for demo */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    {supplier ? `${supplier.name} - Compliance Score: ${supplier.compliance.score}%` : 'Sample Analysis'}
+                  </h4>
+                  <p className="text-gray-600">
+                    {supplier 
+                      ? `${supplier.riskLevel.toUpperCase()} risk supplier with ${supplier.compliance.status} compliance status`
+                      : 'High compliance score based on comprehensive analysis'
+                    }
+                  </p>
+                </div>
+
+                {supplier && (
+                  <>
+                    {/* Scoring Factors */}
+                    <div>
+                      <h5 className="text-md font-semibold text-gray-900 mb-4">Scoring Breakdown</h5>
+                      <div className="space-y-3">
+                        <div className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-gray-900">Compliance</span>
+                            <span className="font-semibold text-gray-900">{supplier.compliance.score}/100</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full ${
+                                supplier.compliance.score >= 90 ? 'bg-green-500' :
+                                supplier.compliance.score >= 75 ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}
+                              style={{ width: `${supplier.compliance.score}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        
+                        <div className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-gray-900">Quality</span>
+                            <span className="font-semibold text-gray-900">{supplier.quality.score}/100</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full ${
+                                supplier.quality.score >= 90 ? 'bg-green-500' :
+                                supplier.quality.score >= 75 ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}
+                              style={{ width: `${supplier.quality.score}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-gray-900">Sustainability</span>
+                            <span className="font-semibold text-gray-900">{supplier.sustainability.score}/100</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full ${
+                                supplier.sustainability.score >= 90 ? 'bg-green-500' :
+                                supplier.sustainability.score >= 75 ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}
+                              style={{ width: `${supplier.sustainability.score}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Key Findings */}
+                    <div>
+                      <h5 className="text-md font-semibold text-gray-900 mb-4">Key Findings</h5>
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Certifications: {supplier.certifications.join(', ')}</span>
+                        </div>
+                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Risk Level: {supplier.riskLevel.toUpperCase()}</span>
+                        </div>
+                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">Last audit: {supplier.lastAudit}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-yellow-800 text-sm">
+                    💡 <strong>Tip:</strong> Click the "Ask AI Agents" buttons above to get real-time analysis from our compliance, risk, and document validation agents.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,60 +1,23 @@
-import React, { useState } from 'react';
-import { TrendingUp, AlertTriangle, CheckCircle, Clock, Filter, Download, Search, Brain, Users } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { TrendingUp, Clock, Filter, Download, Search, Brain, Users } from 'lucide-react';
+import { useSuppliers } from '../hooks/useApi';
+import { useNavigate } from 'react-router-dom';
 
 export default function SupplierScoring() {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+  
+  const { data: suppliers = [], isLoading, error } = useSuppliers();
 
-  const suppliers = [
-    {
-      id: 1,
-      name: 'MedTech Solutions',
-      category: 'Packaging Materials',
-      overallScore: 92,
-      compliance: { score: 95, trend: 'up', status: 'compliant' },
-      quality: { score: 88, trend: 'stable', status: 'good' },
-      sustainability: { score: 94, trend: 'up', status: 'excellent' },
-      lastAudit: '2024-01-15',
-      riskLevel: 'low',
-      certifications: ['EU GMP', 'FDA', 'ISO 15378']
-    },
-    {
-      id: 2,
-      name: 'GlobalPack Ltd',
-      category: 'Primary Packaging',
-      overallScore: 87,
-      compliance: { score: 90, trend: 'up', status: 'compliant' },
-      quality: { score: 85, trend: 'down', status: 'good' },
-      sustainability: { score: 86, trend: 'stable', status: 'good' },
-      lastAudit: '2024-01-20',
-      riskLevel: 'low',
-      certifications: ['EU GMP', 'ISO 15378']
-    },
-    {
-      id: 3,
-      name: 'ABC Pharma Supply',
-      category: 'Raw Materials',
-      overallScore: 73,
-      compliance: { score: 68, trend: 'down', status: 'warning' },
-      quality: { score: 78, trend: 'stable', status: 'good' },
-      sustainability: { score: 75, trend: 'up', status: 'good' },
-      lastAudit: '2024-01-10',
-      riskLevel: 'medium',
-      certifications: ['ISO 15378']
-    },
-    {
-      id: 4,
-      name: 'European Containers Co',
-      category: 'Secondary Packaging',
-      overallScore: 96,
-      compliance: { score: 98, trend: 'up', status: 'compliant' },
-      quality: { score: 94, trend: 'up', status: 'excellent' },
-      sustainability: { score: 96, trend: 'stable', status: 'excellent' },
-      lastAudit: '2024-01-22',
-      riskLevel: 'low',
-      certifications: ['EU GMP', 'FDA', 'ISO 15378', 'REACH']
-    }
-  ];
+  const filteredSuppliers = useMemo(() => {
+    return suppliers.filter(supplier => {
+      const matchesFilter = selectedFilter === 'all' || supplier.riskLevel === selectedFilter;
+      const matchesSearch = supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           supplier.category.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+  }, [suppliers, selectedFilter, searchTerm]);
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-600 bg-green-50';
@@ -79,12 +42,51 @@ export default function SupplierScoring() {
     }
   };
 
-  const filteredSuppliers = suppliers.filter(supplier => {
-    const matchesFilter = selectedFilter === 'all' || supplier.riskLevel === selectedFilter;
-    const matchesSearch = supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.category.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  if (isLoading) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Supplier Analytics</h1>
+          <p className="text-gray-600">Real-time compliance scores, risk analysis, and performance metrics</p>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="w-48 h-6 bg-gray-200 rounded mb-2"></div>
+                  <div className="w-32 h-4 bg-gray-200 rounded"></div>
+                </div>
+                <div className="w-16 h-8 bg-gray-200 rounded-full"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                {[1, 2, 3].map((j) => (
+                  <div key={j} className="text-center">
+                    <div className="w-12 h-6 bg-gray-200 rounded mx-auto mb-1"></div>
+                    <div className="w-16 h-3 bg-gray-200 rounded mx-auto"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Supplier Analytics</h1>
+          <p className="text-gray-600">Real-time compliance scores, risk analysis, and performance metrics</p>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">Error loading supplier data. Please try again.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -226,7 +228,7 @@ export default function SupplierScoring() {
               </button>
               <button 
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
-                onClick={() => window.location.href = `/supplier/${supplier.id}/reasoning`}
+                onClick={() => navigate(`/supplier/${supplier.id}/reasoning`)}
               >
                 <Brain className="h-4 w-4 mr-1 inline-block" />
                 AI Analysis
@@ -236,7 +238,7 @@ export default function SupplierScoring() {
         ))}
       </div>
 
-      {filteredSuppliers.length === 0 && (
+      {filteredSuppliers.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <Search className="h-12 w-12 mx-auto" />
@@ -248,8 +250,10 @@ export default function SupplierScoring() {
       
       {/* Documentation Access Button */}
       <div className="mt-8 text-center">
-        <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-md font-medium inline-flex items-center"
-          onClick={() => window.location.href = '/supplier-portal'}>
+        <button 
+          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-md font-medium inline-flex items-center"
+          onClick={() => navigate('/supplier-portal')}
+        >
           <Users className="h-5 w-5 mr-2" />
           Access Supplier Documentation
         </button>
