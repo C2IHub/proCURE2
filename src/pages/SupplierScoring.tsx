@@ -294,9 +294,11 @@ export default function SupplierScoring() {
                 View Compliance Details
               </button>
               <button 
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
-                onClick={() => navigate(`/supplier/${supplier.id}/reasoning`)}
+                onClick={() => navigate(`/supplier/${supplier.id}/portal`)}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
               >
+                <Users className="h-4 w-4 mr-1 inline-block" />
+                Supplier Documentation
                 <Brain className="h-4 w-4 mr-1 inline-block" />
                 AI Analysis
               </button>
@@ -314,17 +316,6 @@ export default function SupplierScoring() {
           <p className="text-gray-600">Try adjusting your filters or search terms</p>
         </div>
       )}
-      
-      {/* Documentation Access Button */}
-      <div className="mt-8 text-center">
-        <button 
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-md font-medium inline-flex items-center"
-          onClick={() => navigate('/supplier-portal')}
-        >
-          <Users className="h-5 w-5 mr-2" />
-          Access Supplier Documentation
-        </button>
-      </div>
     </div>
   );
 }

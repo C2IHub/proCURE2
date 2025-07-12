@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Upload, Shield, MessageCircle, FileText, Clock, CheckCircle, AlertTriangle, Download, ArrowLeft } from 'lucide-react';
+import { useSupplier } from '../hooks/useApi';
 
 export default function SupplierPortal() {
+  const { id: supplierId } = useParams<{ id: string }>();
+  const { data: supplier } = useSupplier(supplierId || '');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -114,11 +118,15 @@ export default function SupplierPortal() {
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome, MedTech Solutions</h2>
-            <p className="text-gray-600">Packaging Materials Supplier • Member since 2019</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Welcome, {supplier?.name || 'Supplier'}
+            </h2>
+            <p className="text-gray-600">{supplier?.category || 'Supplier'} • Active Supplier</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-blue-600 mb-1">{complianceStatus.overall}%</div>
+            <div className="text-3xl font-bold text-blue-600 mb-1">
+              {supplier?.complianceScore.overall || complianceStatus.overall}%
+            </div>
             <p className="text-sm text-gray-600">Overall Compliance Score</p>
           </div>
         </div>
