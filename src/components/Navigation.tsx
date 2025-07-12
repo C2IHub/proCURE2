@@ -38,7 +38,7 @@ export default function Navigation({ currentUser }: NavigationProps) {
   ];
 
   const recordsAudit = [
-    { name: 'Compliance Records', href: '/audit-trail', icon: FileText },
+    { name: 'Audit Trail', href: '/audit-trail', icon: FileText },
   ];
 
   const renderNavSection = (items: typeof coreAnalytics) => {
