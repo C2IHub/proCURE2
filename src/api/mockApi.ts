@@ -191,9 +191,6 @@ function getRegionSpecificRequirements(region: string) {
 // Get all compliance requirements (generated dynamically)
 const allComplianceRequirements = generateComplianceRequirements();
 
-  // Additional compliance requirements for other suppliers would be added here
-];
-
 // Algorithm to calculate compliance score
 function calculateComplianceScore(supplierId: string): ComplianceScore {
   const requirements = allComplianceRequirements.find(req => req.supplierId === supplierId);
