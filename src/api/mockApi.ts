@@ -13,89 +13,19 @@ import {
   ApiResponse,
   PaginatedResponse 
 } from '../types';
+import { masterSuppliers, getSupplierById } from '../data/masterSuppliers';
 
-// Master supplier data
-const supplierMasterData: SupplierMaster[] = [
-  {
-    id: '1',
-    name: 'MedTech Solutions',
-    category: 'Packaging Materials',
-    region: 'Europe',
-    establishedYear: 2010,
-    employeeCount: 250,
-    annualRevenue: '$50M',
-    facilities: ['Germany', 'Netherlands'],
-    primaryContact: {
-      name: 'Hans Mueller',
-      email: 'h.mueller@medtech-solutions.eu',
-      phone: '+49-123-456-7890'
-    },
-    onboardingDate: '2019-03-15',
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'GlobalPack Ltd',
-    category: 'Primary Packaging',
-    region: 'Europe',
-    establishedYear: 2005,
-    employeeCount: 180,
-    annualRevenue: '$35M',
-    facilities: ['UK', 'Ireland'],
-    primaryContact: {
-      name: 'Sarah Johnson',
-      email: 's.johnson@globalpack.co.uk',
-      phone: '+44-20-1234-5678'
-    },
-    onboardingDate: '2020-01-20',
-    status: 'active'
-  },
-  {
-    id: '3',
-    name: 'ABC Pharma Supply',
-    category: 'Raw Materials',
-    region: 'North America',
-    establishedYear: 2015,
-    employeeCount: 120,
-    annualRevenue: '$25M',
-    facilities: ['USA'],
-    primaryContact: {
-      name: 'Michael Chen',
-      email: 'm.chen@abcpharma.com',
-      phone: '+1-555-123-4567'
-    },
-    onboardingDate: '2021-06-10',
-    status: 'active'
-  },
-  {
-    id: '4',
-    name: 'European Containers Co',
-    category: 'Secondary Packaging',
-    region: 'Europe',
-    establishedYear: 2008,
-    employeeCount: 300,
-    annualRevenue: '$75M',
-    facilities: ['France', 'Spain', 'Italy'],
-    primaryContact: {
-      name: 'Marie Dubois',
-      email: 'm.dubois@eurocontainers.fr',
-      phone: '+33-1-23-45-67-89'
-    },
-    onboardingDate: '2018-11-25',
-    status: 'active'
-  }
-];
 
 // Compliance requirements mapping
 const complianceRequirements: ComplianceRequirement[] = [
   {
-    id: 'req-1',
-    supplierId: '1',
-    category: 'Packaging Materials',
+    id: 'req-SUP001',
+    supplierId: 'SUP001',
+    category: 'Primary Packaging',
     region: 'Europe',
     requirements: [
       {
-        id: 'req-1-1',
+        id: 'req-SUP001-1',
         name: 'EU GMP Certification',
         type: 'certification',
         mandatory: true,
@@ -108,7 +38,7 @@ const complianceRequirements: ComplianceRequirement[] = [
         lastVerified: '2024-01-15'
       },
       {
-        id: 'req-1-2',
+        id: 'req-SUP001-2',
         name: 'ISO 15378 Certification',
         type: 'certification',
         mandatory: true,
@@ -121,7 +51,7 @@ const complianceRequirements: ComplianceRequirement[] = [
         lastVerified: '2024-01-10'
       },
       {
-        id: 'req-1-3',
+        id: 'req-SUP001-3',
         name: 'REACH Compliance',
         type: 'documentation',
         mandatory: true,
@@ -136,12 +66,137 @@ const complianceRequirements: ComplianceRequirement[] = [
     ],
     lastUpdated: '2024-01-15'
   }
+  // Additional compliance requirements would be added for other suppliers
+  // For now, we'll generate them dynamically in the calculation functions
+];
+
+// Generate compliance requirements for all suppliers
+function generateComplianceRequirements(): ComplianceRequirement[] {
+  const allRequirements: ComplianceRequirement[] = [...complianceRequirements];
+  
+  masterSuppliers.forEach(supplier => {
+    // Skip if already exists
+    if (allRequirements.find(req => req.supplierId === supplier.id)) {
+      return;
+    }
+    
+    const baseRequirements = getBaseRequirementsByCategory(supplier.category);
+    const regionSpecificRequirements = getRegionSpecificRequirements(supplier.region);
+    
+    allRequirements.push({
+      id: `req-${supplier.id}`,
+      supplierId: supplier.id,
+      category: supplier.category,
+      region: supplier.region,
+      requirements: [...baseRequirements, ...regionSpecificRequirements],
+      lastUpdated: new Date().toISOString()
+    });
+  });
+  
+  return allRequirements;
+}
+
+function getBaseRequirementsByCategory(category: string) {
+  const baseRequirements = {
+    'Primary Packaging': [
+      {
+        id: 'base-1',
+        name: 'EU GMP Certification',
+        type: 'certification' as const,
+        mandatory: true,
+        description: 'Good Manufacturing Practice certification for pharmaceutical packaging',
+        validityPeriod: 36,
+        renewalNotice: 90,
+        regulatoryBody: 'EMA',
+        currentStatus: 'valid' as const,
+        expiryDate: '2025-06-15',
+        lastVerified: '2024-01-15'
+      },
+      {
+        id: 'base-2',
+        name: 'ISO 15378 Certification',
+        type: 'certification' as const,
+        mandatory: true,
+        description: 'Primary packaging materials for medicinal products',
+        validityPeriod: 36,
+        renewalNotice: 90,
+        regulatoryBody: 'ISO',
+        currentStatus: 'valid' as const,
+        expiryDate: '2025-09-30',
+        lastVerified: '2024-01-10'
+      }
+    ],
+    'Secondary Packaging': [
+      {
+        id: 'base-3',
+        name: 'EU Packaging Directive Compliance',
+        type: 'documentation' as const,
+        mandatory: true,
+        description: 'Compliance with EU Directive 94/62/EC',
+        validityPeriod: 12,
+        renewalNotice: 60,
+        regulatoryBody: 'EU Commission',
+        currentStatus: 'valid' as const,
+        expiryDate: '2024-12-31',
+        lastVerified: '2024-01-05'
+      }
+    ],
+    'APIs': [
+      {
+        id: 'base-4',
+        name: 'FDA Drug Master File',
+        type: 'documentation' as const,
+        mandatory: true,
+        description: 'FDA Drug Master File for API manufacturing',
+        validityPeriod: 60,
+        renewalNotice: 180,
+        regulatoryBody: 'FDA',
+        currentStatus: 'valid' as const,
+        expiryDate: '2026-01-15',
+        lastVerified: '2024-01-01'
+      }
+    ],
+    'Raw Materials': [
+      {
+        id: 'base-5',
+        name: 'REACH Registration',
+        type: 'documentation' as const,
+        mandatory: true,
+        description: 'Registration under REACH regulation',
+        validityPeriod: 12,
+        renewalNotice: 60,
+        regulatoryBody: 'ECHA',
+        currentStatus: 'valid' as const,
+        expiryDate: '2024-12-31',
+        lastVerified: '2024-01-05'
+      }
+    ]
+  };
+  
+  return baseRequirements[category as keyof typeof baseRequirements] || [];
+}
+
+function getRegionSpecificRequirements(region: string) {
+  // Add region-specific requirements based on regulatory landscape
+  const regionRequirements = {
+    'North America': [],
+    'Europe': [],
+    'Asia Pacific': [],
+    'South America': []
+  };
+  
+  return regionRequirements[region as keyof typeof regionRequirements] || [];
+}
+
+// Get all compliance requirements (generated dynamically)
+const allComplianceRequirements = generateComplianceRequirements();
+
   // Additional compliance requirements for other suppliers would be added here
 ];
 
 // Algorithm to calculate compliance score
 function calculateComplianceScore(supplierId: string): ComplianceScore {
-  const requirements = complianceRequirements.find(req => req.supplierId === supplierId);
+  const requirements = allComplianceRequirements.find(req => req.supplierId === supplierId);
   if (!requirements) {
     return {
       overall: 0,
@@ -167,10 +222,10 @@ function calculateComplianceScore(supplierId: string): ComplianceScore {
   const documentationScore = docRequirements.length > 0 ? (validDocs / docRequirements.length) * 100 : 100;
 
   // Mock audit score (30% weight) - would come from actual audit data
-  const auditScore = supplierId === '1' ? 95 : supplierId === '2' ? 88 : supplierId === '3' ? 70 : 96;
+  const auditScore = getAuditScoreForSupplier(supplierId);
 
   // Mock regulatory history score (10% weight) - would come from violation history
-  const regulatoryHistoryScore = supplierId === '3' ? 65 : 90;
+  const regulatoryHistoryScore = getRegulatoryHistoryScore(supplierId);
 
   // Calculate overall score
   const overall = Math.round(
@@ -186,7 +241,7 @@ function calculateComplianceScore(supplierId: string): ComplianceScore {
   else if (overall >= 70) status = 'warning';
   else status = 'critical';
 
-  const trend = supplierId === '3' ? 'down' : supplierId === '1' ? 'up' : 'stable';
+  const trend = getTrendForSupplier(supplierId);
 
   return {
     overall,
@@ -201,18 +256,43 @@ function calculateComplianceScore(supplierId: string): ComplianceScore {
   };
 }
 
+function getAuditScoreForSupplier(supplierId: string): number {
+  // Generate realistic audit scores based on supplier characteristics
+  const supplier = getSupplierById(supplierId);
+  if (!supplier) return 75;
+  
+  // Base score influenced by establishment year and employee count
+  const baseScore = 70 + (supplier.employeeCount > 200 ? 15 : supplier.employeeCount > 100 ? 10 : 5);
+  const ageBonus = Math.min((2024 - supplier.establishedYear) * 2, 15);
+  
+  return Math.min(baseScore + ageBonus + Math.floor(Math.random() * 10), 100);
+}
+
+function getRegulatoryHistoryScore(supplierId: string): number {
+  // Generate regulatory history scores
+  const supplier = getSupplierById(supplierId);
+  if (!supplier) return 80;
+  
+  return supplier.name.includes('ABC') ? 65 : 85 + Math.floor(Math.random() * 10);
+}
+
+function getTrendForSupplier(supplierId: string): 'up' | 'down' | 'stable' {
+  const supplier = getSupplierById(supplierId);
+  if (!supplier) return 'stable';
+  
+  return supplier.name.includes('ABC') ? 'down' : 
+         supplier.establishedYear > 2015 ? 'up' : 'stable';
+}
+
 // Algorithm to calculate risk score
 function calculateRiskScore(supplierId: string): RiskScore {
+  const supplier = getSupplierById(supplierId);
+  if (!supplier) {
+    return getDefaultRiskScore();
+  }
+  
   // Mock risk factors - in real implementation, these would come from various data sources
-  const riskFactors = {
-    '1': { financial: 15, operational: 20, qualityTrend: 10, supplyChain: 25, regulatory: 15 },
-    '2': { financial: 25, operational: 30, qualityTrend: 35, supplyChain: 20, regulatory: 20 },
-    '3': { financial: 45, operational: 40, qualityTrend: 55, supplyChain: 35, regulatory: 50 },
-    '4': { financial: 10, operational: 15, qualityTrend: 8, supplyChain: 12, regulatory: 10 }
-  };
-
-  const factors = riskFactors[supplierId as keyof typeof riskFactors] || 
-    { financial: 30, operational: 30, qualityTrend: 30, supplyChain: 30, regulatory: 30 };
+  const factors = calculateRiskFactors(supplier);
 
   // Calculate overall risk score (weighted average)
   const overall = Math.round(
@@ -232,7 +312,7 @@ function calculateRiskScore(supplierId: string): RiskScore {
   // Calculate probability of issues (simplified model)
   const probability = Math.min(overall * 0.8, 95); // Cap at 95%
 
-  const trend = supplierId === '3' ? 'deteriorating' : supplierId === '1' ? 'improving' : 'stable';
+  const trend = getRiskTrendForSupplier(supplier);
 
   return {
     overall,
@@ -244,6 +324,62 @@ function calculateRiskScore(supplierId: string): RiskScore {
     regulatory: factors.regulatory,
     probability: Math.round(probability),
     trend,
+    lastCalculated: new Date().toISOString(),
+    nextAssessment: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  };
+}
+
+function calculateRiskFactors(supplier: SupplierMaster) {
+  // Calculate risk factors based on supplier characteristics
+  const baseRisk = 20;
+  
+  // Financial risk based on company size and revenue
+  const financialRisk = supplier.employeeCount < 100 ? baseRisk + 20 : 
+                       supplier.employeeCount < 200 ? baseRisk + 10 : baseRisk;
+  
+  // Operational risk based on facilities and geographic spread
+  const operationalRisk = supplier.facilities.length === 1 ? baseRisk + 25 : 
+                         supplier.facilities.length === 2 ? baseRisk + 15 : baseRisk;
+  
+  // Quality trend risk based on establishment year and category
+  const qualityRisk = supplier.establishedYear > 2015 ? baseRisk + 15 : 
+                     supplier.establishedYear > 2010 ? baseRisk + 5 : baseRisk;
+  
+  // Supply chain risk based on region and facilities
+  const supplyChainRisk = supplier.region === 'Asia Pacific' ? baseRisk + 10 : 
+                         supplier.facilities.length === 1 ? baseRisk + 20 : baseRisk;
+  
+  // Regulatory risk based on category and region
+  const regulatoryRisk = supplier.category === 'APIs' ? baseRisk + 15 : 
+                        supplier.region === 'Asia Pacific' ? baseRisk + 10 : baseRisk;
+  
+  // Add some randomness for realism
+  return {
+    financial: Math.min(financialRisk + Math.floor(Math.random() * 10), 80),
+    operational: Math.min(operationalRisk + Math.floor(Math.random() * 10), 80),
+    qualityTrend: Math.min(qualityRisk + Math.floor(Math.random() * 10), 80),
+    supplyChain: Math.min(supplyChainRisk + Math.floor(Math.random() * 10), 80),
+    regulatory: Math.min(regulatoryRisk + Math.floor(Math.random() * 10), 80)
+  };
+}
+
+function getRiskTrendForSupplier(supplier: SupplierMaster): 'improving' | 'stable' | 'deteriorating' {
+  if (supplier.name.includes('ABC')) return 'deteriorating';
+  if (supplier.establishedYear > 2015) return 'improving';
+  return 'stable';
+}
+
+function getDefaultRiskScore(): RiskScore {
+  return {
+    overall: 50,
+    level: 'medium',
+    financial: 50,
+    operational: 50,
+    qualityTrend: 50,
+    supplyChain: 50,
+    regulatory: 50,
+    probability: 40,
+    trend: 'stable',
     lastCalculated: new Date().toISOString(),
     nextAssessment: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
   };
@@ -262,13 +398,13 @@ function determineSupplierRating(complianceScore: ComplianceScore, riskScore: Ri
 
 // Mock data - in a real app, this would come from your backend API
 function generateMockSuppliers(): Supplier[] {
-  return supplierMasterData.map(master => {
+  return masterSuppliers.slice(0, 10).map(master => { // Use first 10 for demo
     const complianceScore = calculateComplianceScore(master.id);
     const riskScore = calculateRiskScore(master.id);
     const supplierRating = determineSupplierRating(complianceScore, riskScore);
     
     // Get certifications from compliance requirements
-    const requirements = complianceRequirements.find(req => req.supplierId === master.id);
+    const requirements = allComplianceRequirements.find(req => req.supplierId === master.id);
     const certifications = requirements?.requirements
       .filter(req => req.type === 'certification' && req.currentStatus === 'valid')
       .map(req => req.name.replace(' Certification', '')) || ['ISO 15378'];
@@ -443,6 +579,17 @@ export const metricsApi = {
     ];
     return {
       data,
+      timestamp: new Date().toISOString()
+    };
+  }
+};
+
+// New API endpoints for master supplier management
+export const masterSupplierApi = {
+  async getMasterSuppliers(): Promise<ApiResponse<SupplierMaster[]>> {
+    await delay(300);
+    return {
+      data: masterSuppliers,
       timestamp: new Date().toISOString()
     };
   }
