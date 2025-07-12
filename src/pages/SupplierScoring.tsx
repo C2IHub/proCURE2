@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, Clock, Filter, Download, Search, Brain, Users } from 'lucide-react';
+import { TrendingUp, Clock, Filter, Download, Search, Brain, Users, FileText } from 'lucide-react';
 import { useSuppliers } from '../hooks/useApi';
 import { useNavigate } from 'react-router-dom';
 
