@@ -1,536 +1,628 @@
 import React, { useState, useEffect } from 'react';
-import { Brain, Sparkles, Send, CheckCircle, ArrowRight, FileText, Users, Download, Eye, Loader, MessageSquare } from 'lucide-react';
+import { Brain, Upload, FileText, CheckCircle, Edit3, Download, Eye, Loader, AlertCircle, Sparkles, ArrowRight, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useSuppliers } from '../hooks/useApi';
 import { useComplianceAgent } from '../context/BedrockAgentProvider';
 
-interface ChatMessage {
+interface UploadedFile {
   id: string;
-  type: 'agent' | 'user';
-  content: string;
-  timestamp: Date;
-  isLoading?: boolean;
+  name: string;
+  size: string;
+  type: string;
+  uploadDate: string;
 }
 
-interface RFPData {
-  projectName?: string;
-  categories?: string[];
-  markets?: string[];
-  budget?: string;
-  deadline?: string;
-  description?: string;
-  regulations?: string[];
-  generatedContent?: string;
-  artifacts?: any[];
+interface RFPParameters {
+  // Product Details
+  productType: string;
+  productDescription: string;
+  intendedUse: string;
+  
+  // Packaging Requirements
+  packagingType: string[];
+  materialRequirements: string[];
+  volumeRequirements: string;
+  shelfLife: string;
+  
+  // Compliance Requirements
+  regulatoryMarkets: string[];
+  complianceStandards: string[];
+  certificationRequirements: string[];
+  
+  // Sustainability Goals
+  sustainabilityTargets: string[];
+  environmentalRequirements: string[];
+  
+  // Project Parameters
+  targetMarkets: string[];
+  budgetRange: string;
+  timeline: string;
+  deliverySchedule: string;
+  
+  // Quality Requirements
+  qualityStandards: string[];
+  testingRequirements: string[];
+}
+
+interface GeneratedArtifact {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  status: 'generating' | 'ready' | 'approved';
+  size?: string;
 }
 
 export default function RFPWizard() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [currentStep, setCurrentStep] = useState('welcome');
-  const [rfpData, setRfpData] = useState<RFPData>({});
-  const [showQuickOptions, setShowQuickOptions] = useState(true);
-  const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState('upload'); // upload, analysis, review, generation, approval
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [productDetails, setProductDetails] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [rfpParameters, setRfpParameters] = useState<RFPParameters | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedArtifacts, setGeneratedArtifacts] = useState<GeneratedArtifact[]>([]);
+  const [projectId, setProjectId] = useState('');
   
   const navigate = useNavigate();
-  const { data: suppliers = [] } = useSuppliers();
   const complianceAgent = useComplianceAgent();
 
-  // Initialize with welcome message
-  useEffect(() => {
-    const welcomeMessage: ChatMessage = {
-      id: 'welcome-1',
-      type: 'agent',
-      content: `# Welcome to AI-Powered RFP Generation! 🚀
-
-I'm your AI procurement assistant, and I'll help you create a comprehensive, compliance-ready RFP in minutes instead of hours.
-
-I'll guide you through a few simple questions to understand your needs, then generate:
-- **Technical specifications** tailored to your requirements
-- **Compliance checklists** for your target markets
-- **Evaluation matrices** with weighted criteria
-- **Supplier recommendations** based on our database
-
-**Ready to get started?** Tell me about your procurement project, or choose from these common scenarios:`,
-      timestamp: new Date()
-    };
-    setMessages([welcomeMessage]);
-  }, []);
-
-  const quickStartOptions = [
-    {
-      id: 'packaging',
-      title: 'Primary Packaging Materials',
-      description: 'Bottles, vials, syringes for pharmaceutical products',
-      icon: '📦'
-    },
-    {
-      id: 'api',
-      title: 'API Manufacturing',
-      description: 'Active pharmaceutical ingredient production',
-      icon: '⚗️'
-    },
-    {
-      id: 'equipment',
-      title: 'Manufacturing Equipment',
-      description: 'Production machinery and quality control equipment',
-      icon: '🏭'
-    },
-    {
-      id: 'testing',
-      title: 'Testing & Validation Services',
-      description: 'Quality control and compliance testing',
-      icon: '🔬'
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newFiles: UploadedFile[] = Array.from(files).map((file, index) => ({
+        id: `file-${Date.now()}-${index}`,
+        name: file.name,
+        size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+        type: file.type.includes('pdf') ? 'PDF' : file.type.includes('doc') ? 'DOC' : 'Other',
+        uploadDate: new Date().toISOString()
+      }));
+      setUploadedFiles(prev => [...prev, ...newFiles]);
     }
-  ];
-
-  const handleQuickStart = async (option: any) => {
-    setShowQuickOptions(false);
-    
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      type: 'user',
-      content: `I need help with ${option.title} - ${option.description}`,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    
-    // Set initial data based on selection
-    const categoryMap: Record<string, string[]> = {
-      'packaging': ['Primary Packaging'],
-      'api': ['APIs', 'Raw Materials'],
-      'equipment': ['Equipment'],
-      'testing': ['Testing Services']
-    };
-
-    setRfpData(prev => ({
-      ...prev,
-      categories: categoryMap[option.id] || []
-    }));
-
-    await processAgentResponse(`The user wants to create an RFP for ${option.title}. Ask them about their specific project details like budget range, timeline, and target markets.`);
   };
 
-  const handleSendMessage = async (message: string) => {
-    if (!message.trim() || isProcessing) return;
+  const analyzeRequirements = async () => {
+    if (!productDetails.trim() && uploadedFiles.length === 0) {
+      alert('Please provide product details or upload requirement documents');
+      return;
+    }
 
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      type: 'user',
-      content: message,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    
-    await processAgentResponse(message);
-  };
-
-  const processAgentResponse = async (userInput: string) => {
-    setIsProcessing(true);
-    
-    const loadingMessage: ChatMessage = {
-      id: `agent-${Date.now()}`,
-      type: 'agent',
-      content: '',
-      timestamp: new Date(),
-      isLoading: true
-    };
-
-    setMessages(prev => [...prev, loadingMessage]);
+    setIsAnalyzing(true);
+    setCurrentStep('analysis');
 
     try {
-      // Determine what information we still need
-      const missingInfo = [];
-      if (!rfpData.projectName) missingInfo.push('project name');
-      if (!rfpData.budget) missingInfo.push('budget range');
-      if (!rfpData.deadline) missingInfo.push('timeline/deadline');
-      if (!rfpData.markets || rfpData.markets.length === 0) missingInfo.push('target markets');
-      if (!rfpData.categories || rfpData.categories.length === 0) missingInfo.push('categories');
+      const prompt = `Analyze the following pharmaceutical product requirements and generate comprehensive RFP parameters:
 
-      let prompt = '';
-      let nextStep = '';
+Product Details: ${productDetails}
+Uploaded Documents: ${uploadedFiles.map(f => f.name).join(', ')}
 
-      if (missingInfo.length > 0) {
-        // Still gathering information
-        prompt = `The user said: "${userInput}". 
-        
-Current RFP data: ${JSON.stringify(rfpData)}
-Missing information: ${missingInfo.join(', ')}
+Please analyze and return detailed parameters for:
+1. Packaging requirements (types, materials, volumes, shelf life)
+2. Compliance requirements (regulatory markets, standards, certifications)
+3. Sustainability goals (environmental targets, green requirements)
+4. Project parameters (target markets, budget estimates, timeline)
+5. Quality requirements (standards, testing needs)
 
-Extract any relevant information from their message and ask for the next most important missing piece of information. Be conversational and helpful. If they provided project details, acknowledge them and ask for the next piece.
-
-Keep responses concise and focused on one question at a time.`;
-        nextStep = 'gathering';
-      } else {
-        // Ready to generate RFP
-        prompt = `Generate a comprehensive RFP based on this information:
-${JSON.stringify(rfpData)}
-
-Create a professional RFP document with sections for technical specifications, compliance requirements, and evaluation criteria.`;
-        nextStep = 'generation';
-      }
+Format the response as a comprehensive analysis with specific recommendations for each category.`;
 
       const response = await complianceAgent.invoke({
         prompt,
-        sessionId: `rfp-wizard-${Date.now()}`,
-        context: { rfpData, userInput, step: nextStep }
+        sessionId: `rfp-analysis-${Date.now()}`,
+        context: { productDetails, uploadedFiles }
       });
 
-      // Extract any data from the user's input
-      extractDataFromInput(userInput);
+      // Simulate AI analysis and parameter extraction
+      const mockParameters: RFPParameters = {
+        productType: extractProductType(productDetails),
+        productDescription: productDetails,
+        intendedUse: 'Pharmaceutical packaging and distribution',
+        
+        packagingType: ['Primary packaging', 'Secondary packaging', 'Tertiary packaging'],
+        materialRequirements: ['USP Class VI materials', 'EU food contact approved', 'Barrier properties'],
+        volumeRequirements: '1mL to 100mL range',
+        shelfLife: '24-36 months',
+        
+        regulatoryMarkets: ['FDA (US)', 'EMA (EU)', 'Health Canada'],
+        complianceStandards: ['ISO 15378', 'EU GMP', 'FDA 21 CFR Part 820'],
+        certificationRequirements: ['CE Marking', 'FDA Registration', 'ISO 13485'],
+        
+        sustainabilityTargets: ['50% recycled content', 'Carbon neutral packaging', 'Biodegradable options'],
+        environmentalRequirements: ['REACH compliance', 'RoHS compliance', 'Sustainable sourcing'],
+        
+        targetMarkets: ['North America', 'Europe', 'Asia Pacific'],
+        budgetRange: '$500K - $2M',
+        timeline: '6-9 months',
+        deliverySchedule: 'Phased delivery over 12 months',
+        
+        qualityStandards: ['ISO 9001', 'ISO 14001', 'Good Manufacturing Practice'],
+        testingRequirements: ['Extractables & Leachables', 'Compatibility testing', 'Stability studies']
+      };
 
-      // Update the loading message with the response
-      setMessages(prev => prev.map(msg => 
-        msg.id === loadingMessage.id 
-          ? { ...msg, content: response.response, isLoading: false }
-          : msg
-      ));
-
-      // Check if we should move to next step
-      if (nextStep === 'generation' && missingInfo.length === 0) {
-        setCurrentStep('generated');
-        // Generate RFP artifacts
-        generateRFPArtifacts();
-      }
+      setTimeout(() => {
+        setRfpParameters(mockParameters);
+        setAnalysisComplete(true);
+        setIsAnalyzing(false);
+        setCurrentStep('review');
+      }, 3000);
 
     } catch (error) {
-      setMessages(prev => prev.map(msg => 
-        msg.id === loadingMessage.id 
-          ? { ...msg, content: 'I encountered an error. Please try again.', isLoading: false }
-          : msg
-      ));
-    } finally {
-      setIsProcessing(false);
+      console.error('Analysis error:', error);
+      setIsAnalyzing(false);
     }
   };
 
-  const extractDataFromInput = (input: string) => {
-    const lowerInput = input.toLowerCase();
-    
-    // Extract budget
-    if (lowerInput.includes('budget') || lowerInput.includes('$')) {
-      if (lowerInput.includes('100k') || lowerInput.includes('500k')) {
-        setRfpData(prev => ({ ...prev, budget: '$100K - $500K' }));
-      } else if (lowerInput.includes('1m') || lowerInput.includes('million')) {
-        setRfpData(prev => ({ ...prev, budget: '$500K - $1M' }));
-      }
-    }
-
-    // Extract markets
-    const markets = [];
-    if (lowerInput.includes('europe') || lowerInput.includes('eu')) markets.push('Europe');
-    if (lowerInput.includes('us') || lowerInput.includes('america') || lowerInput.includes('fda')) markets.push('North America');
-    if (lowerInput.includes('asia') || lowerInput.includes('japan') || lowerInput.includes('china')) markets.push('Asia Pacific');
-    
-    if (markets.length > 0) {
-      setRfpData(prev => ({ ...prev, markets }));
-    }
-
-    // Extract timeline
-    if (lowerInput.includes('month') || lowerInput.includes('week') || lowerInput.includes('2024') || lowerInput.includes('2025')) {
-      const timelineMatch = input.match(/(\d+)\s*(month|week|day)/i);
-      if (timelineMatch) {
-        const deadline = new Date();
-        const amount = parseInt(timelineMatch[1]);
-        const unit = timelineMatch[2].toLowerCase();
-        
-        if (unit === 'month') deadline.setMonth(deadline.getMonth() + amount);
-        else if (unit === 'week') deadline.setDate(deadline.getDate() + (amount * 7));
-        else if (unit === 'day') deadline.setDate(deadline.getDate() + amount);
-        
-        setRfpData(prev => ({ ...prev, deadline: deadline.toISOString().split('T')[0] }));
-      }
-    }
-
-    // Extract project name (simple heuristic)
-    if (input.length < 100 && !lowerInput.includes('budget') && !lowerInput.includes('need')) {
-      const words = input.split(' ');
-      if (words.length <= 8 && words.length >= 2) {
-        setRfpData(prev => ({ ...prev, projectName: input }));
-      }
-    }
+  const extractProductType = (details: string): string => {
+    const lower = details.toLowerCase();
+    if (lower.includes('injection') || lower.includes('syringe')) return 'Injectable Products';
+    if (lower.includes('tablet') || lower.includes('pill')) return 'Solid Dosage Forms';
+    if (lower.includes('liquid') || lower.includes('solution')) return 'Liquid Formulations';
+    return 'Pharmaceutical Products';
   };
 
-  const generateRFPArtifacts = () => {
-    const artifacts = [
+  const generateArtifacts = async () => {
+    if (!rfpParameters) return;
+
+    setIsGenerating(true);
+    setCurrentStep('generation');
+
+    const artifacts: GeneratedArtifact[] = [
       {
-        id: 1,
+        id: 'tech-specs',
         name: 'Technical Specifications Document',
         type: 'PDF',
         description: 'Detailed technical requirements and specifications',
-        generated: true
+        status: 'generating'
       },
       {
-        id: 2,
-        name: 'Compliance Checklist',
+        id: 'compliance-matrix',
+        name: 'Compliance Requirements Matrix',
         type: 'Excel',
-        description: 'Regulatory compliance requirements checklist',
-        generated: true
+        description: 'Regulatory compliance checklist and requirements',
+        status: 'generating'
       },
       {
-        id: 3,
-        name: 'Evaluation Matrix',
+        id: 'evaluation-criteria',
+        name: 'Supplier Evaluation Criteria',
         type: 'Excel',
-        description: 'Supplier evaluation criteria and scoring matrix',
-        generated: true
+        description: 'Scoring matrix and evaluation framework',
+        status: 'generating'
       },
       {
-        id: 4,
-        name: 'Supplier Recommendations',
+        id: 'sustainability-guide',
+        name: 'Sustainability Requirements Guide',
         type: 'PDF',
-        description: 'AI-recommended suppliers based on requirements',
-        generated: true
+        description: 'Environmental and sustainability criteria',
+        status: 'generating'
+      },
+      {
+        id: 'rfp-document',
+        name: 'Complete RFP Document',
+        type: 'PDF',
+        description: 'Final RFP ready for distribution',
+        status: 'generating'
       }
     ];
 
-    setRfpData(prev => ({ ...prev, artifacts }));
-  };
+    setGeneratedArtifacts(artifacts);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage(inputValue);
+    // Simulate artifact generation
+    for (let i = 0; i < artifacts.length; i++) {
+      setTimeout(() => {
+        setGeneratedArtifacts(prev => prev.map((artifact, index) => 
+          index === i 
+            ? { ...artifact, status: 'ready', size: `${Math.floor(Math.random() * 10) + 1}.${Math.floor(Math.random() * 9) + 1} MB` }
+            : artifact
+        ));
+        
+        if (i === artifacts.length - 1) {
+          setIsGenerating(false);
+          setCurrentStep('approval');
+          setProjectId(`RFP-${Date.now().toString().slice(-6)}`);
+        }
+      }, (i + 1) * 1500);
     }
   };
 
-  const sendRFP = () => {
-    alert(`RFP "${rfpData.projectName || 'Pharmaceutical Procurement RFP'}" sent to ${selectedSuppliers.length} suppliers!`);
+  const updateParameter = (category: keyof RFPParameters, value: any) => {
+    if (!rfpParameters) return;
+    setRfpParameters(prev => prev ? { ...prev, [category]: value } : null);
+  };
+
+  const approveAndFinalize = () => {
+    alert(`RFP Project ${projectId} has been created and is ready for supplier distribution!`);
     navigate('/rfp-tracker');
   };
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">AI RFP Generator</h1>
-        <p className="text-gray-600">Let AI create your pharmaceutical RFP in minutes with intelligent compliance requirements</p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">AI-Powered RFP Generator</h1>
+        <p className="text-gray-600">Upload your requirements and let AI create a comprehensive, compliance-ready RFP</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Chat Interface */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-[600px] flex flex-col">
-            {/* Chat Header */}
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-purple-100 rounded-t-xl">
-              <div className="flex items-center">
-                <div className="p-2 bg-purple-100 rounded-lg mr-3">
-                  <Brain className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">AI RFP Assistant</h3>
-                  <div className="flex items-center text-sm text-purple-600">
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    <span>Powered by Advanced AI</span>
+      {/* Step 1: Upload & Product Details */}
+      {currentStep === 'upload' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Upload className="h-8 w-8 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to AI RFP Generation</h2>
+            <p className="text-gray-600">Start by describing your product and uploading any requirement documents</p>
+          </div>
+
+          {/* Product Details */}
+          <div className="mb-8">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Product Details & Requirements
+            </label>
+            <textarea
+              value={productDetails}
+              onChange={(e) => setProductDetails(e.target.value)}
+              placeholder="Describe your pharmaceutical product, intended use, key requirements, target markets, and any specific compliance needs..."
+              className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
+          </div>
+
+          {/* File Upload */}
+          <div className="mb-8">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Upload Requirement Documents (Optional)
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-lg font-medium text-gray-900 mb-2">Upload your documents</p>
+              <p className="text-gray-600 mb-4">Product specs, compliance requirements, or reference documents</p>
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx,.txt"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Choose Files
+              </label>
+            </div>
+
+            {/* Uploaded Files */}
+            {uploadedFiles.length > 0 && (
+              <div className="mt-4 space-y-2">
+                {uploadedFiles.map((file) => (
+                  <div key={file.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center">
+                      <FileText className="h-5 w-5 text-green-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-gray-900">{file.name}</p>
+                        <p className="text-sm text-gray-600">{file.type} • {file.size}</p>
+                      </div>
+                    </div>
+                    <CheckCircle className="h-5 w-5 text-green-600" />
                   </div>
-                </div>
+                ))}
               </div>
+            )}
+          </div>
+
+          {/* Action Button */}
+          <div className="text-center">
+            <button
+              onClick={analyzeRequirements}
+              disabled={!productDetails.trim() && uploadedFiles.length === 0}
+              className="inline-flex items-center px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
+            >
+              <Brain className="h-5 w-5 mr-2" />
+              Analyze Requirements with AI
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: AI Analysis */}
+      {currentStep === 'analysis' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Brain className="h-8 w-8 text-purple-600 animate-pulse" />
             </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[85%] p-4 rounded-lg ${
-                      message.type === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
-                  >
-                    {message.isLoading ? (
-                      <div className="flex items-center">
-                        <Loader className="h-4 w-4 animate-spin mr-2" />
-                        <span>Thinking...</span>
-                      </div>
-                    ) : (
-                      <div className="whitespace-pre-wrap text-sm">{message.content}</div>
-                    )}
-                  </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">AI is Analyzing Your Requirements</h2>
+            <p className="text-gray-600 mb-8">Our AI agent is processing your documents and extracting comprehensive RFP parameters...</p>
+            
+            <div className="max-w-md mx-auto">
+              <div className="flex items-center justify-center space-x-2 mb-4">
+                <Loader className="h-5 w-5 text-blue-600 animate-spin" />
+                <span className="text-blue-600 font-medium">Processing...</span>
+              </div>
+              
+              <div className="space-y-3 text-left">
+                <div className="flex items-center text-sm text-gray-600">
+                  <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                  Analyzing product requirements
                 </div>
-              ))}
-
-              {/* Quick Start Options */}
-              {showQuickOptions && (
-                <div className="space-y-3">
-                  {quickStartOptions.map((option) => (
-                    <button
-                      key={option.id}
-                      onClick={() => handleQuickStart(option)}
-                      className="w-full text-left p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
-                    >
-                      <div className="flex items-center">
-                        <span className="text-2xl mr-3">{option.icon}</span>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{option.title}</h4>
-                          <p className="text-sm text-gray-600">{option.description}</p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-blue-600 ml-auto" />
-                      </div>
-                    </button>
-                  ))}
+                <div className="flex items-center text-sm text-gray-600">
+                  <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                  Extracting compliance standards
                 </div>
-              )}
-            </div>
-
-            {/* Input Area */}
-            <div className="p-4 border-t border-gray-200">
-              <div className="flex space-x-2">
-                <div className="flex-1 relative">
-                  <textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Tell me about your procurement needs..."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
-                    rows={2}
-                    disabled={isProcessing}
-                  />
+                <div className="flex items-center text-sm text-gray-600">
+                  <Loader className="h-4 w-4 text-blue-600 animate-spin mr-2" />
+                  Generating packaging specifications
                 </div>
-                <button
-                  onClick={() => handleSendMessage(inputValue)}
-                  disabled={!inputValue.trim() || isProcessing}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {isProcessing ? (
-                    <Loader className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </button>
+                <div className="flex items-center text-sm text-gray-400">
+                  <div className="h-4 w-4 border-2 border-gray-300 rounded-full mr-2"></div>
+                  Determining target markets
+                </div>
+                <div className="flex items-center text-sm text-gray-400">
+                  <div className="h-4 w-4 border-2 border-gray-300 rounded-full mr-2"></div>
+                  Estimating project parameters
+                </div>
               </div>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Progress & Actions */}
+      {/* Step 3: Review Parameters */}
+      {currentStep === 'review' && rfpParameters && (
         <div className="space-y-6">
-          {/* Current Progress */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">RFP Progress</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Project Details</span>
-                <CheckCircle className={`h-4 w-4 ${rfpData.projectName ? 'text-green-600' : 'text-gray-300'}`} />
+          <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6">
+            <div className="flex items-center">
+              <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Analysis Complete!</h2>
+                <p className="text-gray-600">AI has extracted comprehensive parameters. Review and edit as needed.</p>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Categories</span>
-                <CheckCircle className={`h-4 w-4 ${rfpData.categories?.length ? 'text-green-600' : 'text-gray-300'}`} />
+            </div>
+          </div>
+
+          {/* Parameter Categories */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Product Details */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Product Details</h3>
+                <Edit3 className="h-4 w-4 text-gray-400" />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Target Markets</span>
-                <CheckCircle className={`h-4 w-4 ${rfpData.markets?.length ? 'text-green-600' : 'text-gray-300'}`} />
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+                  <input
+                    type="text"
+                    value={rfpParameters.productType}
+                    onChange={(e) => updateParameter('productType', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Intended Use</label>
+                  <input
+                    type="text"
+                    value={rfpParameters.intendedUse}
+                    onChange={(e) => updateParameter('intendedUse', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Budget & Timeline</span>
-                <CheckCircle className={`h-4 w-4 ${rfpData.budget && rfpData.deadline ? 'text-green-600' : 'text-gray-300'}`} />
+            </div>
+
+            {/* Packaging Requirements */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Packaging Requirements</h3>
+                <Edit3 className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Volume Requirements</label>
+                  <input
+                    type="text"
+                    value={rfpParameters.volumeRequirements}
+                    onChange={(e) => updateParameter('volumeRequirements', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Shelf Life</label>
+                  <input
+                    type="text"
+                    value={rfpParameters.shelfLife}
+                    onChange={(e) => updateParameter('shelfLife', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Compliance Requirements */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Compliance Requirements</h3>
+                <Edit3 className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Regulatory Markets</label>
+                  <div className="flex flex-wrap gap-2">
+                    {rfpParameters.regulatoryMarkets.map((market, index) => (
+                      <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        {market}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Standards Required</label>
+                  <div className="flex flex-wrap gap-2">
+                    {rfpParameters.complianceStandards.map((standard, index) => (
+                      <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                        {standard}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Project Parameters */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Project Parameters</h3>
+                <Edit3 className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Budget Range</label>
+                  <input
+                    type="text"
+                    value={rfpParameters.budgetRange}
+                    onChange={(e) => updateParameter('budgetRange', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Timeline</label>
+                  <input
+                    type="text"
+                    value={rfpParameters.timeline}
+                    onChange={(e) => updateParameter('timeline', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="text-center">
+            <button
+              onClick={generateArtifacts}
+              className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-lg"
+            >
+              <Sparkles className="h-5 w-5 mr-2" />
+              Generate RFP Artifacts
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Artifact Generation */}
+      {currentStep === 'generation' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="h-8 w-8 text-purple-600 animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Generating RFP Artifacts</h2>
+            <p className="text-gray-600">AI is creating comprehensive documents based on your confirmed parameters...</p>
+          </div>
+
+          <div className="space-y-4">
+            {generatedArtifacts.map((artifact) => (
+              <div key={artifact.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center">
+                  <div className={`p-2 rounded-lg mr-3 ${
+                    artifact.status === 'generating' ? 'bg-yellow-100' :
+                    artifact.status === 'ready' ? 'bg-green-100' : 'bg-blue-100'
+                  }`}>
+                    {artifact.status === 'generating' ? (
+                      <Loader className="h-5 w-5 text-yellow-600 animate-spin" />
+                    ) : artifact.status === 'ready' ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">{artifact.name}</h4>
+                    <p className="text-sm text-gray-600">{artifact.description}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {artifact.status === 'ready' && artifact.size && (
+                    <span className="text-sm text-gray-500">{artifact.size}</span>
+                  )}
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
+                    artifact.status === 'generating' ? 'bg-yellow-100 text-yellow-800' :
+                    artifact.status === 'ready' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {artifact.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Step 5: Approval */}
+      {currentStep === 'approval' && (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">RFP Generation Complete!</h2>
+                  <p className="text-gray-600">Project ID: <span className="font-mono font-medium">{projectId}</span></p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-600">Ready for Distribution</div>
+                <div className="text-lg font-bold text-green-600">{generatedArtifacts.length} Artifacts</div>
               </div>
             </div>
           </div>
 
           {/* Generated Artifacts */}
-          {rfpData.artifacts && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Documents</h3>
-              <div className="space-y-3">
-                {rfpData.artifacts.map((artifact) => (
-                  <div key={artifact.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div className="flex items-center">
-                      <FileText className="h-4 w-4 text-green-600 mr-2" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{artifact.name}</p>
-                        <p className="text-xs text-gray-600">{artifact.type}</p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-1">
-                      <button className="p-1 text-gray-400 hover:text-gray-600">
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button className="p-1 text-gray-400 hover:text-gray-600">
-                        <Download className="h-4 w-4" />
-                      </button>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Artifacts</h3>
+            <div className="space-y-3">
+              {generatedArtifacts.map((artifact) => (
+                <div key={artifact.id} className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                  <div className="flex items-center">
+                    <FileText className="h-5 w-5 text-green-600 mr-3" />
+                    <div>
+                      <h4 className="font-medium text-gray-900">{artifact.name}</h4>
+                      <p className="text-sm text-gray-600">{artifact.type} • {artifact.size}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div className="flex space-x-2">
+                    <button className="p-2 text-gray-400 hover:text-gray-600">
+                      <Eye className="h-4 w-4" />
+                    </button>
+                    <button className="p-2 text-gray-400 hover:text-gray-600">
+                      <Download className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* Actions */}
-          {currentStep === 'generated' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Next Steps</h3>
-              <div className="space-y-3">
-                <button
-                  onClick={() => setCurrentStep('supplier-selection')}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-                >
-                  <Users className="h-4 w-4 mr-2 inline" />
-                  Select Suppliers
-                </button>
-                <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium">
-                  <Eye className="h-4 w-4 mr-2 inline" />
-                  Preview RFP
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Supplier Selection */}
-          {currentStep === 'supplier-selection' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Recommended Suppliers</h3>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {suppliers
-                  .filter(s => rfpData.categories?.includes(s.category))
-                  .slice(0, 6)
-                  .map((supplier) => (
-                    <div
-                      key={supplier.id}
-                      onClick={() => setSelectedSuppliers(prev => 
-                        prev.includes(supplier.id) 
-                          ? prev.filter(id => id !== supplier.id)
-                          : [...prev, supplier.id]
-                      )}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedSuppliers.includes(supplier.id)
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{supplier.name}</p>
-                          <p className="text-xs text-gray-600">{supplier.category}</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-bold text-green-600">{supplier.complianceScore.overall}%</div>
-                          <div className="text-xs text-gray-500">Score</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-              
-              {selectedSuppliers.length > 0 && (
-                <button
-                  onClick={sendRFP}
-                  className="w-full mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
-                >
-                  <Send className="h-4 w-4 mr-2 inline" />
-                  Send RFP to {selectedSuppliers.length} Suppliers
-                </button>
-              )}
-            </div>
-          )}
+          {/* Final Actions */}
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => setCurrentStep('review')}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+            >
+              Back to Edit
+            </button>
+            <button
+              onClick={approveAndFinalize}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              <Send className="h-4 w-4 mr-2 inline" />
+              Approve & Send to Suppliers
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
