@@ -610,7 +610,9 @@ Format the response as a comprehensive analysis with specific recommendations fo
                       <Eye className="h-4 w-4" />
                     </button>
                     <button className="p-2 text-gray-400 hover:text-gray-600">
-        </div>
+                      <Download className="h-4 w-4" />
+                    </button>
+                  </div>
 
                   </div>
                 </div>
