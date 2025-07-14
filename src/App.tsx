@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Navigation from './components/Navigation';
+import AgenticInterface from './components/AgenticInterface';
 import AgentReasoning from './pages/AgentReasoning';
 import ComplianceCommandCenter from './pages/ComplianceCommandCenter';
 import RFPWizard from './pages/RFPWizard';
