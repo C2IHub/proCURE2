@@ -333,25 +333,6 @@ export default function SupplierPortal() {
         </div>
       )}
 
-      {/* AI Assistant */}
-      <div className="mt-8">
-        <AgenticInterface 
-          context="portal"
-          contextData={{ 
-            supplierId,
-            supplierName: supplier?.name,
-            activeTab,
-            complianceStatus,
-            pendingActions: pendingActions.length
-          }}
-          suggestedQuestions={[
-            "What documents do I need to update?",
-            "Show me my compliance status summary",
-            "What are my upcoming deadlines?",
-            "Help me understand the requirements"
-          ]}
-        />
-      </div>
     </div>
   );
 }

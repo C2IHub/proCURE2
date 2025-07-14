@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { MessageSquare, Send, Sparkles, Brain, Loader, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageSquare, Send, Sparkles, Brain, Loader, X, Minimize2, Maximize2 } from 'lucide-react';
 import { useComplianceAgent, useRiskAgent, useDocumentAgent } from '../context/BedrockAgentProvider';
 
 interface AgenticInterfaceProps {
   context: string; // e.g., 'compliance', 'risk', 'rfp', 'supplier', 'audit'
   contextData?: any; // Additional context data like supplier info, RFP data, etc.
   suggestedQuestions?: string[];
-  className?: string;
 }
 
 interface ChatMessage {
@@ -20,10 +19,9 @@ interface ChatMessage {
 export default function AgenticInterface({ 
   context, 
   contextData, 
-  suggestedQuestions = [], 
-  className = '' 
+  suggestedQuestions = []
 }: AgenticInterfaceProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -174,9 +172,8 @@ export default function AgenticInterface({
 
   const handleSuggestedQuestion = (question: string) => {
     setInputValue(question);
-    if (!isExpanded) {
-      setIsExpanded(true);
-    }
+    // Auto-send the suggested question
+    handleSendMessage(question);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -187,95 +184,109 @@ export default function AgenticInterface({
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 ${className}`}>
+    <div className={`fixed right-0 top-0 h-full bg-white border-l border-gray-200 shadow-lg z-40 transition-all duration-300 ${
+      isMinimized ? 'w-16' : 'w-96'
+    }`}>
       {/* Header */}
-      <div 
-        className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-purple-100">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-50 rounded-lg mr-3">
-              <Brain className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
-              <p className="text-sm text-gray-600">Ask anything about your {context} data</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center text-sm text-purple-600">
-              <Sparkles className="h-4 w-4 mr-1" />
-              <span>Powered by AI</span>
-            </div>
-            {isExpanded ? (
-              <ChevronUp className="h-5 w-5 text-gray-400" />
-            ) : (
-              <ChevronDown className="h-5 w-5 text-gray-400" />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Suggested Questions (Always Visible) */}
-      <div className="p-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Questions</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {questions.slice(0, 4).map((question, index) => (
-            <button
-              key={index}
-              onClick={() => handleSuggestedQuestion(question)}
-              className="text-left p-3 bg-gray-50 hover:bg-purple-50 rounded-lg transition-colors text-sm text-gray-700 hover:text-purple-700 border border-transparent hover:border-purple-200"
-            >
-              <MessageSquare className="h-4 w-4 inline mr-2 text-gray-400" />
-              {question}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Expanded Chat Interface */}
-      {isExpanded && (
-        <div className="border-t border-gray-200">
-          {/* Chat Messages */}
-          {messages.length > 0 && (
-            <div className="p-4 max-h-96 overflow-y-auto space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] p-3 rounded-lg ${
-                      message.type === 'user'
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
-                  >
-                    {message.isLoading ? (
-                      <div className="flex items-center">
-                        <Loader className="h-4 w-4 animate-spin mr-2" />
-                        <span>Thinking...</span>
-                      </div>
-                    ) : (
-                      <div className="whitespace-pre-wrap text-sm">{message.content}</div>
-                    )}
-                  </div>
+          {!isMinimized && (
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg mr-3">
+                <Brain className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+                <div className="flex items-center text-sm text-purple-600">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  <span>Always here to help</span>
                 </div>
-              ))}
+              </div>
             </div>
           )}
+          <div className="flex items-center space-x-2">
+            {!isMinimized && (
+              <div className="flex items-center text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                <Sparkles className="h-3 w-3 mr-1" />
+                <span>AI Powered</span>
+              </div>
+            )}
+            <button
+              onClick={() => setIsMinimized(!isMinimized)}
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+            >
+              {isMinimized ? (
+                <Maximize2 className="h-4 w-4" />
+              ) : (
+                <Minimize2 className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {!isMinimized && (
+        <>
+          {/* Quick Questions */}
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Questions</h4>
+            <div className="space-y-2">
+              {questions.slice(0, 4).map((question, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestedQuestion(question)}
+                  className="w-full text-left p-3 bg-white hover:bg-purple-50 rounded-lg transition-colors text-sm text-gray-700 hover:text-purple-700 border border-gray-200 hover:border-purple-200"
+                >
+                  <MessageSquare className="h-4 w-4 inline mr-2 text-gray-400" />
+                  {question}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ height: 'calc(100vh - 280px)' }}>
+            {messages.length === 0 && (
+              <div className="text-center py-8">
+                <Brain className="h-12 w-12 text-purple-300 mx-auto mb-3" />
+                <p className="text-sm text-gray-500">Ask me anything about your {context} data</p>
+              </div>
+            )}
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[85%] p-3 rounded-lg ${
+                    message.type === 'user'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-900'
+                  }`}
+                >
+                  {message.isLoading ? (
+                    <div className="flex items-center">
+                      <Loader className="h-4 w-4 animate-spin mr-2" />
+                      <span>Thinking...</span>
+                    </div>
+                  ) : (
+                    <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-gray-200 bg-white">
             <div className="flex space-x-2">
               <div className="flex-1 relative">
                 <textarea
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about your data..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  placeholder="Ask me anything..."
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
                   rows={2}
                   disabled={isProcessing}
                 />
@@ -296,6 +307,14 @@ export default function AgenticInterface({
               Press Enter to send, Shift+Enter for new line
             </p>
           </div>
+        </>
+      )}
+
+      {/* Minimized State */}
+      {isMinimized && (
+        <div className="p-4 text-center">
+          <Brain className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+          <p className="text-xs text-gray-500 transform -rotate-90 whitespace-nowrap">AI Assistant</p>
         </div>
       )}
     </div>

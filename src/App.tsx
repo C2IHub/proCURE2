@@ -38,7 +38,7 @@ function App() {
           <Router>
             <div className="min-h-screen bg-gray-50">
               <Navigation currentUser={currentUser} />
-              <main className="pl-64">
+              <main className="pl-64 pr-96">
                 <Routes>
                   <Route path="/" element={<ComplianceCommandCenter />} />
                   <Route path="/rfp-wizard" element={<RFPWizard />} />
@@ -51,6 +51,10 @@ function App() {
                   <Route path="/supplier/:id/portal" element={<SupplierPortal />} />
                 </Routes>
               </main>
+              <AgenticInterface 
+                context="global"
+                contextData={{}}
+              />
             </div>
           </Router>
         </SupplierProvider>

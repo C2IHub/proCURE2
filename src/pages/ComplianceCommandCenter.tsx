@@ -89,15 +89,6 @@ export default function ComplianceCommandCenter() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Activity */}
         <RecentActivity />
-        
-        {/* AI Assistant */}
-        <AgenticInterface 
-          context="compliance"
-          contextData={{ 
-            totalSuppliers: metrics.find(m => m.title === 'Compliant Suppliers')?.value,
-            criticalAlerts: metrics.find(m => m.title === 'Critical Alerts')?.value
-          }}
-        />
       </div>
     </div>
   );

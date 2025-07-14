@@ -232,18 +232,6 @@ export default function AuditTrail() {
         </div>
       )}
 
-      {/* AI Assistant */}
-      <div className="mt-8">
-        <AgenticInterface 
-          context="audit"
-          contextData={{ 
-            totalEvents: auditData?.total || 0,
-            filteredEvents: filteredEvents.length,
-            selectedFilter,
-            currentPage
-          }}
-        />
-      </div>
     </div>
   );
 }

@@ -496,19 +496,6 @@ export default function RFPTracker() {
         </div>
       )}
 
-      {/* AI Assistant */}
-      <div className="mt-8">
-        <AgenticInterface 
-          context="tracker"
-          contextData={{ 
-            totalRFPs: rfps.length,
-            filteredRFPs: filteredRFPs.length,
-            statusFilter,
-            activeRFPs: rfps.filter(r => r.status === 'sent' || r.status === 'responses_received').length
-          }}
-        />
-      </div>
-
       {filteredRFPs.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">

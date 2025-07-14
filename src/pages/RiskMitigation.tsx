@@ -304,18 +304,6 @@ export default function RiskMitigation() {
         </div>
       </div>
 
-      {/* AI Assistant */}
-      <div className="mt-8">
-        <AgenticInterface 
-          context="risk"
-          contextData={{ 
-            criticalRisks: riskAlerts.filter(r => r.level === 'critical').length,
-            totalRisks: riskAlerts.length,
-            selectedRisk: selectedRisk ? riskAlerts.find(r => r.id === selectedRisk) : null
-          }}
-        />
-      </div>
-
       {/* Mitigation Modal */}
       {showMitigationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

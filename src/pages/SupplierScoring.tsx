@@ -322,18 +322,6 @@ export default function SupplierScoring() {
           <p className="text-gray-600">Try adjusting your filters or search terms</p>
         </div>
       )}
-
-     {/* AI Assistant */}
-     <div className="mt-8">
-       <AgenticInterface 
-         context="scoring"
-         contextData={{ 
-           totalSuppliers: suppliers.length,
-           filteredCount: filteredSuppliers.length,
-           selectedFilter
-         }}
-       />
-     </div>
       </div>
     </>
   );

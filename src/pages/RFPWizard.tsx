@@ -378,26 +378,6 @@ Format as a professional RFP document.`;
         </div>
       </div>
 
-      {/* AI Assistant */}
-      <div className="mt-8">
-        <AgenticInterface 
-          context="rfp"
-          contextData={{ 
-            currentStep,
-            selectedCategories,
-            selectedMarkets,
-            projectDetails,
-            generatedRFP
-          }}
-          suggestedQuestions={[
-            "Help me select the right compliance requirements",
-            "What categories should I include for this project?",
-            "Suggest evaluation criteria for suppliers",
-            "What are the typical timelines for this type of RFP?"
-          ]}
-        />
-      </div>
-
       {/* Step Content */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
         {currentStep === 1 && (
