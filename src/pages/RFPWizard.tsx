@@ -251,28 +251,36 @@ Format the response as a comprehensive analysis with specific recommendations fo
             <p className="text-gray-600">Start by describing your product and uploading any requirement documents</p>
           </div>
 
-          {/* Product Details */}
+          {/* Additional Details - Optional */}
           <div className="mb-8">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Product Details & Requirements
+            <label className="block text-lg font-semibold text-gray-900 mb-3">
+              Additional Details & Requirements
+              <span className="text-sm font-normal text-gray-500 ml-2">(Optional)</span>
             </label>
+            <p className="text-gray-600 mb-3">
+              Add any additional context, specific requirements, or details not covered in your uploaded documents.
+            </p>
             <textarea
               value={productDetails}
               onChange={(e) => setProductDetails(e.target.value)}
-              placeholder="Describe your pharmaceutical product, intended use, key requirements, target markets, and any specific compliance needs..."
+              placeholder="Any additional context, special requirements, target markets, budget constraints, timeline preferences, or other details not in your documents..."
               className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             />
           </div>
 
           {/* File Upload */}
           <div className="mb-8">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Upload Requirement Documents (Optional)
+            <label className="block text-lg font-semibold text-gray-900 mb-4">
+              Upload Project Documents
             </label>
+            <p className="text-gray-600 mb-4">
+              Upload your project requirements, product specifications, compliance documents, or any relevant files. 
+              Our AI will analyze and extract all necessary information to generate your RFP.
+            </p>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
               <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-900 mb-2">Upload your documents</p>
-              <p className="text-gray-600 mb-4">Product specs, compliance requirements, or reference documents</p>
+              <p className="text-lg font-medium text-gray-900 mb-2">Upload your project documents</p>
+              <p className="text-gray-600 mb-4">Product specs, requirements, compliance docs, reference materials, etc.</p>
               <input
                 type="file"
                 multiple
@@ -313,13 +321,18 @@ Format the response as a comprehensive analysis with specific recommendations fo
           <div className="text-center">
             <button
               onClick={analyzeRequirements}
-              disabled={!productDetails.trim() && uploadedFiles.length === 0}
+              disabled={uploadedFiles.length === 0}
               className="inline-flex items-center px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
             >
               <Brain className="h-5 w-5 mr-2" />
-              Analyze Requirements with AI
+              Analyze Documents with AI
               <ArrowRight className="h-5 w-5 ml-2" />
             </button>
+            {uploadedFiles.length === 0 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Please upload at least one document to proceed
+              </p>
+            )}
           </div>
         </div>
       )}
