@@ -333,6 +333,6 @@ export default function SupplierScoring() {
           }}
         />
       </div>
-
+      </div>
   );
 }
