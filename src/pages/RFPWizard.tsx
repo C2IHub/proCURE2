@@ -566,10 +566,18 @@ Format the response as a comprehensive analysis with specific recommendations fo
                   }`}>
                     {artifact.status}
                   </span>
-                </div>
-              </div>
-            ))}
-          </div>
+            onClick={() => setCurrentStep('review')}
+            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+          >
+            Back to Edit
+          </button>
+          <button
+            onClick={approveAndFinalize}
+            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          >
+            <Send className="h-4 w-4 mr-2 inline" />
+            Approve & Send to Suppliers
+          </button>
         </div>
       )}
 
