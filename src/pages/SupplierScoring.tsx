@@ -322,17 +322,17 @@ export default function SupplierScoring() {
         </div>
       )}
     </div>
-      {/* AI Assistant */}
-      <div className="mt-8">
-        <AgenticInterface 
-          context="scoring"
-          contextData={{ 
-            totalSuppliers: suppliers.length,
-            filteredCount: filteredSuppliers.length,
-            selectedFilter
-          }}
-        />
-      </div>
-      </div>
+     {/* AI Assistant */}
+     <div className="mt-8">
+       <AgenticInterface 
+         context="scoring"
+         contextData={{ 
+           totalSuppliers: suppliers.length,
+           filteredCount: filteredSuppliers.length,
+           selectedFilter
+         }}
+       />
+     </div>
+   </div>
   );
 }
