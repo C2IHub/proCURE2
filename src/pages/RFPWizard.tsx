@@ -251,23 +251,6 @@ Format the response as a comprehensive analysis with specific recommendations fo
             <p className="text-gray-600">Start by describing your product and uploading any requirement documents</p>
           </div>
 
-          {/* Additional Details - Optional */}
-          <div className="mb-8">
-            <label className="block text-lg font-semibold text-gray-900 mb-3">
-              Additional Details & Requirements
-              <span className="text-sm font-normal text-gray-500 ml-2">(Optional)</span>
-            </label>
-            <p className="text-gray-600 mb-3">
-              Add any additional context, specific requirements, or details not covered in your uploaded documents.
-            </p>
-            <textarea
-              value={productDetails}
-              onChange={(e) => setProductDetails(e.target.value)}
-              placeholder="Any additional context, special requirements, target markets, budget constraints, timeline preferences, or other details not in your documents..."
-              className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            />
-          </div>
-
           {/* File Upload */}
           <div className="mb-8">
             <label className="block text-lg font-semibold text-gray-900 mb-4">
@@ -315,6 +298,23 @@ Format the response as a comprehensive analysis with specific recommendations fo
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Additional Details - Optional */}
+          <div className="mb-8">
+            <label className="block text-lg font-semibold text-gray-900 mb-3">
+              Additional Details & Requirements
+              <span className="text-sm font-normal text-gray-500 ml-2">(Optional)</span>
+            </label>
+            <p className="text-gray-600 mb-3">
+              Add any additional context, specific requirements, or details not covered in your uploaded documents.
+            </p>
+            <textarea
+              value={productDetails}
+              onChange={(e) => setProductDetails(e.target.value)}
+              placeholder="Any additional context, special requirements, target markets, budget constraints, timeline preferences, or other details not in your documents..."
+              className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
           </div>
 
           {/* Action Button */}
