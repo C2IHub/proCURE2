@@ -3,6 +3,7 @@ import { FileText, Globe, Shield, Upload, ChevronRight, Plus, X, CheckCircle, Br
 import { useNavigate } from 'react-router-dom';
 import { useSuppliers } from '../hooks/useApi';
 import { useComplianceAgent } from '../context/BedrockAgentProvider';
+import AgenticInterface from '../components/AgenticInterface';
 
 export default function RFPWizard() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -375,6 +376,26 @@ Format as a professional RFP document.`;
             </div>
           ))}
         </div>
+      </div>
+
+      {/* AI Assistant */}
+      <div className="mt-8">
+        <AgenticInterface 
+          context="rfp"
+          contextData={{ 
+            currentStep,
+            selectedCategories,
+            selectedMarkets,
+            projectDetails,
+            generatedRFP
+          }}
+          suggestedQuestions={[
+            "Help me select the right compliance requirements",
+            "What categories should I include for this project?",
+            "Suggest evaluation criteria for suppliers",
+            "What are the typical timelines for this type of RFP?"
+          ]}
+        />
       </div>
 
       {/* Step Content */}

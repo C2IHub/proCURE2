@@ -17,6 +17,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AgenticInterface from '../components/AgenticInterface';
 
 interface RFPItem {
   id: string;
@@ -494,6 +495,19 @@ export default function RFPTracker() {
           </div>
         </div>
       )}
+
+      {/* AI Assistant */}
+      <div className="mt-8">
+        <AgenticInterface 
+          context="tracker"
+          contextData={{ 
+            totalRFPs: rfps.length,
+            filteredRFPs: filteredRFPs.length,
+            statusFilter,
+            activeRFPs: rfps.filter(r => r.status === 'sent' || r.status === 'responses_received').length
+          }}
+        />
+      </div>
 
       {filteredRFPs.length === 0 && (
         <div className="text-center py-12">

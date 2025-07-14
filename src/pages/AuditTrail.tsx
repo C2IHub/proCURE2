@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { History, Search, Filter, Download, Eye, User, Bot, FileText, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import { useAuditEvents } from '../hooks/useApi';
+import AgenticInterface from '../components/AgenticInterface';
 
 export default function AuditTrail() {
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -230,6 +231,19 @@ export default function AuditTrail() {
           </div>
         </div>
       )}
+
+      {/* AI Assistant */}
+      <div className="mt-8">
+        <AgenticInterface 
+          context="audit"
+          contextData={{ 
+            totalEvents: auditData?.total || 0,
+            filteredEvents: filteredEvents.length,
+            selectedFilter,
+            currentPage
+          }}
+        />
+      </div>
     </div>
   );
 }

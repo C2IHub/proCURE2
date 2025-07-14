@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Upload, Shield, MessageCircle, FileText, Clock, CheckCircle, AlertTriangle, Download, ArrowLeft } from 'lucide-react';
 import { useSupplier } from '../hooks/useApi';
+import AgenticInterface from '../components/AgenticInterface';
 
 export default function SupplierPortal() {
   const { id: supplierId } = useParams<{ id: string }>();
@@ -331,6 +332,26 @@ export default function SupplierPortal() {
           </div>
         </div>
       )}
+
+      {/* AI Assistant */}
+      <div className="mt-8">
+        <AgenticInterface 
+          context="portal"
+          contextData={{ 
+            supplierId,
+            supplierName: supplier?.name,
+            activeTab,
+            complianceStatus,
+            pendingActions: pendingActions.length
+          }}
+          suggestedQuestions={[
+            "What documents do I need to update?",
+            "Show me my compliance status summary",
+            "What are my upcoming deadlines?",
+            "Help me understand the requirements"
+          ]}
+        />
+      </div>
     </div>
   );
 }

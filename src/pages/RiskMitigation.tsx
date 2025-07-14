@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertTriangle, Shield, TrendingUp, Clock, ChevronDown, Eye, CheckCircle, X } from 'lucide-react';
+import AgenticInterface from '../components/AgenticInterface';
 
 export default function RiskMitigation() {
   const [selectedRisk, setSelectedRisk] = useState<string | null>('risk-1');
@@ -301,6 +302,18 @@ export default function RiskMitigation() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* AI Assistant */}
+      <div className="mt-8">
+        <AgenticInterface 
+          context="risk"
+          contextData={{ 
+            criticalRisks: riskAlerts.filter(r => r.level === 'critical').length,
+            totalRisks: riskAlerts.length,
+            selectedRisk: selectedRisk ? riskAlerts.find(r => r.id === selectedRisk) : null
+          }}
+        />
       </div>
 
       {/* Mitigation Modal */}

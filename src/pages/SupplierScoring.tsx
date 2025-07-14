@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { TrendingUp, Clock, Filter, Download, Search, Brain, Users, FileText, Shield, AlertTriangle, CheckCircle, Star } from 'lucide-react';
 import { useSuppliers } from '../hooks/useApi';
 import { useNavigate } from 'react-router-dom';
+import AgenticInterface from '../components/AgenticInterface';
 
 export default function SupplierScoring() {
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -321,5 +322,17 @@ export default function SupplierScoring() {
         </div>
       )}
     </div>
+      {/* AI Assistant */}
+      <div className="mt-8">
+        <AgenticInterface 
+          context="scoring"
+          contextData={{ 
+            totalSuppliers: suppliers.length,
+            filteredCount: filteredSuppliers.length,
+            selectedFilter
+          }}
+        />
+      </div>
+
   );
 }

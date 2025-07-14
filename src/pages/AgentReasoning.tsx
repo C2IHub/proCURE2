@@ -3,6 +3,7 @@ import { Brain, Eye, CheckCircle, ArrowLeft, MessageSquare, Loader } from 'lucid
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAgents, useSupplier } from '../hooks/useApi';
 import { useComplianceAgent, useRiskAgent, useDocumentAgent } from '../context/BedrockAgentProvider';
+import AgenticInterface from '../components/AgenticInterface';
 
 export default function AgentReasoning() {
   const { id: supplierId } = useParams<{ id: string }>();
@@ -354,6 +355,26 @@ Review document completeness, validity, and compliance with current regulations.
             )}
           </div>
         </div>
+      </div>
+
+      {/* AI Assistant */}
+      <div className="mt-8">
+        <AgenticInterface 
+          context="supplier"
+          contextData={{ 
+            supplierId,
+            supplierName: supplier?.name,
+            category: supplier?.category,
+            complianceScore: supplier?.complianceScore.overall,
+            riskLevel: supplier?.riskScore.level
+          }}
+          suggestedQuestions={[
+            "Explain the compliance scoring methodology",
+            "What factors contribute to the risk assessment?",
+            "How does this supplier compare to industry benchmarks?",
+            "What are the key improvement recommendations?"
+          ]}
+        />
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle, Clock, TrendingUp, Users, FileText, Zap, Sh
 import MetricCard from '../components/MetricCard';
 import ComplianceChart from '../components/ComplianceChart';
 import RecentActivity from '../components/RecentActivity';
+import AgenticInterface from '../components/AgenticInterface';
 import { useMetrics } from '../hooks/useApi';
 
 // Icon mapping for dynamic rendering
@@ -89,43 +90,14 @@ export default function ComplianceCommandCenter() {
         {/* Recent Activity */}
         <RecentActivity />
         
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <button className="w-full flex items-center justify-between p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 text-blue-600 mr-3" />
-                <span className="font-medium text-gray-900">Create New RFP</span>
-              </div>
-              <span className="text-blue-600">→</span>
-            </button>
-            
-            <button className="w-full flex items-center justify-between p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-              <div className="flex items-center">
-                <Users className="h-5 w-5 text-green-600 mr-3" />
-                <span className="font-medium text-gray-900">Analyze Supplier Data</span>
-              </div>
-              <span className="text-green-600">→</span>
-            </button>
-            
-            <button className="w-full flex items-center justify-between p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-              <div className="flex items-center">
-                <Zap className="h-5 w-5 text-purple-600 mr-3" />
-                <span className="font-medium text-gray-900">View AI Insights</span>
-              </div>
-              <span className="text-purple-600">→</span>
-            </button>
-            
-            <button className="w-full flex items-center justify-between p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
-              <div className="flex items-center">
-                <ShieldAlert className="h-5 w-5 text-orange-600 mr-3" />
-                <span className="font-medium text-gray-900">Manage Risks</span>
-              </div>
-              <span className="text-orange-600">→</span>
-            </button>
-          </div>
-        </div>
+        {/* AI Assistant */}
+        <AgenticInterface 
+          context="compliance"
+          contextData={{ 
+            totalSuppliers: metrics.find(m => m.title === 'Compliant Suppliers')?.value,
+            criticalAlerts: metrics.find(m => m.title === 'Critical Alerts')?.value
+          }}
+        />
       </div>
     </div>
   );
