@@ -112,7 +112,8 @@ export default function SupplierScoring() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <>
+      <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Supplier Intelligence</h1>
@@ -321,7 +322,7 @@ export default function SupplierScoring() {
           <p className="text-gray-600">Try adjusting your filters or search terms</p>
         </div>
       )}
-    </div>
+
      {/* AI Assistant */}
      <div className="mt-8">
        <AgenticInterface 
@@ -333,6 +334,7 @@ export default function SupplierScoring() {
          }}
        />
      </div>
-   </div>
+      </div>
+    </>
   );
 }
